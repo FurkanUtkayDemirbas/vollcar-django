@@ -1,0 +1,36 @@
+{% extends "transfer/base.html" %}
+
+{% block title %}{{ baslik|default:"Araç Türü Ekle" }}{% endblock %}
+
+{% block content %}
+<div class="form-container-compact" style="max-width: 600px; margin: 0 auto;">
+    <h1 class="form-title">{{ baslik|default:"Araç Türü Ekle / Düzenle" }}</h1>
+
+    <form method="POST" class="custom-form">
+        {% csrf_token %}
+        <div class="grid-2">
+            {% for field in form %}
+            <div class="form-group">
+                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}
+                <p class="form-help-text">{{ field.help_text }}</p>
+                {% endif %}
+                {% if field.errors %}
+                <div class="form-error">
+                    {% for error in field.errors %}
+                    <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="form-actions" style="justify-content: flex-end; margin-top: 1.5rem;">
+            <a href="{% url 'arac_turu_listesi' %}" class="btn-gray">İptal</a>
+            <button type="submit" class="btn-blue">Kaydet</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

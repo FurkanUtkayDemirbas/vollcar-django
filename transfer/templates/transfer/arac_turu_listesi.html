@@ -1,0 +1,46 @@
+{% extends "transfer/base.html" %}
+
+{% block title %}Araç Türleri Yönetimi{% endblock %}
+
+{% block content %}
+<div class="card-container-large">
+    <div class="card-header">
+        <h1 class="card-title"><i class="fas fa-tags mr-2"></i> Araç Türleri ve Kategoriler</h1>
+        <a href="{% url 'arac_turu_ekle' %}" class="btn-blue">
+            <i class="fas fa-plus"></i> Yeni Tür Ekle
+        </a>
+    </div>
+
+    <div class="table-container" style="margin-top:20px;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Tür Kodu</th>
+                    <th>Tanımı</th>
+                    <th>Bağlı Olduğu Şirket</th>
+                    <th>İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for tur in arac_turleri %}
+                <tr>
+                    <td><span class="badge badge-blue">{{ tur.kodu|default:"-" }}</span></td>
+                    <td class="table-text-bold">{{ tur.tanimi }}</td>
+                    <td>{{ tur.firma|default:"Genel" }}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{% url 'arac_turu_duzenle' tur.id %}" class="action-btn-blue" title="Düzenle"><i class="fas fa-edit"></i></a>
+                            <a href="{% url 'arac_turu_sil' tur.id %}" class="action-btn-red" title="Sil"><i class="fas fa-trash"></i></a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="empty-state">Henüz bir araç türü tanımlanmamış.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "transfer/base.html" %}
+
+{% block title %}Müşteri Sil{% endblock %}
+
+{% block content %}
+<div class="form-container" style="max-width: 500px; margin: 0 auto; text-align: center; padding: 30px;">
+    
+    <div style="font-size: 50px; color: #ef4444; margin-bottom: 20px;">
+        <i class="fas fa-exclamation-triangle"></i>
+    </div>
+    
+    <h1 style="color: #374151; margin-bottom: 10px;">Kaydı Silmek Üzeresiniz!</h1>
+    
+    <p style="color: #6b7280; margin-bottom: 25px;">
+        <strong>"{{ muhatap.unvan }}"</strong> isimli müşteriyi kalıcı olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz.
+    </p>
+
+    <form method="POST">
+        {% csrf_token %}
+        <div style="display: flex; gap: 15px; justify-content: center;">
+            <a href="{% url 'muhatap_listesi' %}" style="background: #f3f4f6; color: #374151; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold;">
+                <i class="fas fa-times"></i> İptal
+            </a>
+            
+            <button type="submit" style="background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-weight: bold; cursor: pointer;">
+                <i class="fas fa-trash"></i> Evet, Sil
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

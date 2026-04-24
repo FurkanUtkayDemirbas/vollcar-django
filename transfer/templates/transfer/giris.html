@@ -1,0 +1,45 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giriş Yap</title>
+    <link rel="stylesheet" href="{% static 'transfer/css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="login-body">
+    <div class="auth-container">
+        <div class="auth-header">
+            <i class="fas fa-bus-alt auth-icon-blue"></i>
+            <h2 class="auth-title">Hoş Geldiniz</h2>
+            <p class="auth-subtitle">Devam etmek için giriş yapın</p>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+            
+            {% for field in form %}
+            <div class="form-group">
+                <label class="form-label">{{ field.label }}</label>
+                {{ field }}
+            </div>
+            {% endfor %}
+
+            {% if form.errors %}
+            <div class="error-box">
+                Kullanıcı adı veya şifre hatalı.
+            </div>
+            {% endif %}
+
+            <button type="submit" class="btn-primary">
+                Giriş Yap
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            Hesabınız yok mu? <a href="{% url 'kayit_ol' %}" class="auth-link-blue">Kayıt Ol</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,243 @@
+from django import forms
+from django.db.models import Q
+from .models import Transfer, Arac, Personel, Sigorta, Hasar, Bakim, Masraf, Ceza, Firma, Kiralama, Muhatap, AracTuru, MasrafTuru
+
+class AracTuruForm(forms.ModelForm):
+    class Meta:
+        model = AracTuru
+        fields = '__all__'
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            if not isinstance(field.widget, forms.CheckboxInput):
+                field.widget.attrs['class'] = 'form-input'
+
+class MasrafTuruForm(forms.ModelForm):
+    class Meta:
+        model = MasrafTuru
+        fields = '__all__'
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            if not isinstance(field.widget, forms.CheckboxInput):
+                field.widget.attrs['class'] = 'form-input'
+
+class PersonelForm(forms.ModelForm):
+    class Meta:
+        model = Personel
+        exclude = ['ad_soyad']
+        widgets = {
+            'is_baslama_tarihi': forms.DateInput(attrs={'type': 'date', 'class': 'form-input'}),
+            'is_ayrilis_tarihi': forms.DateInput(attrs={'type': 'date', 'class': 'form-input'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            if field_name not in ['is_baslama_tarihi', 'is_ayrilis_tarihi']:
+                if not isinstance(field.widget, forms.CheckboxInput):
+                    field.widget.attrs['class'] = 'form-input'
+
+                    
+class TransferForm(forms.ModelForm):
+    class Meta:
+        model = Transfer
+        exclude = ['kisi_sayisi', 'cocuk_sayisi', 'bebek_sayisi', 'musteri_adi', 'musteri_kodu', 'musteri_telefon', 'musteri_mail']
+        widgets = {
+            'alis_saati': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-input'}),
+            'varis_saati': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-input'}),
+            'alis_yeri': forms.Textarea(attrs={'class': 'form-input', 'rows': 2}),
+            'varis_yeri': forms.Textarea(attrs={'class': 'form-input', 'rows': 2}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            if field_name not in ['alis_saati', 'varis_saati']:
+                if not isinstance(field.widget, forms.CheckboxInput):
+                    field.widget.attrs['class'] = 'form-input'
+                    
+        if 'arac_kodu' in self.fields:
+            if hasattr(self.instance, 'arac_kodu') and self.instance.arac_kodu:
+                self.fields['arac_kodu'].queryset = Arac.objects.filter(Q(arac_durumu='bosta') | Q(id=self.instance.arac_kodu.id))
+            else:
+                self.fields['arac_kodu'].queryset = Arac.objects.filter(arac_durumu='bosta')
+
+    def clean(self):
+        cleaned_data = super().clean()
+        arac = cleaned_data.get('arac_kodu')
+        personel = cleaned_data.get('personel')
+        alis_saati = cleaned_data.get('alis_saati')
+        varis_saati = cleaned_data.get('varis_saati')
+
+        if alis_saati and varis_saati:
+            # Bitiş saati başlangıçtan önce olamaz
+            if varis_saati <= alis_saati:
+                raise forms.ValidationError("Varış saati, çıkış saatinden sonra olmalıdır.")
+
+            # Araç müsaitlik kontrolü
+            if arac:
+                if not arac.is_available(alis_saati, varis_saati, exclude_transfer_id=self.instance.id):
+                    raise forms.ValidationError(f"{arac.plaka} plakalı araç seçilen tarih aralığında başka bir transfer veya kiralama için atanmış durumda.")
+            
+            # Şoför (personel) müsaitlik kontrolü
+            if personel:
+                if not personel.is_available(alis_saati, varis_saati, exclude_transfer_id=self.instance.id):
+                    raise forms.ValidationError(f"{personel.ad_soyad} isimli personel seçilen tarih aralığında başka bir transferde görevli.")
+        
+        return cleaned_data
+
+class AracForm(forms.ModelForm):
+    class Meta:
+        model = Arac
+        fields = '__all__'
+        widgets = {
+            'ilk_tescil_tarihi': forms.DateInput(attrs={'type': 'date', 'class': 'form-input'}),
+            'tescil_tarihi': forms.DateInput(attrs={'type': 'date', 'class': 'form-input'}),
+            'muayene_tarihi': forms.DateInput(attrs={'type': 'date', 'class': 'form-input'}),
+            'egzoz_emisyon_tarihi': forms.DateInput(attrs={'type': 'date', 'class': 'form-input'}),
+            'cekici_ruhsati_tarihi': forms.DateInput(attrs={'type': 'date', 'class': 'form-input'}),
+            'serusefer_tarihi': forms.DateInput(attrs={'type': 'date', 'class': 'form-input'}),
+            'arac_kodu': forms.TextInput(attrs={'class': 'form-input', 'readonly': 'readonly', 'placeholder': 'Sistem Tarafından Otomatik Verilecektir'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            if field_name not in self.Meta.widgets or field_name == 'arac_kodu':
+                if not isinstance(field.widget, forms.CheckboxInput) and not isinstance(field.widget, forms.FileInput):
+                    field.widget.attrs['class'] = 'form-input'
+
+class FirmaForm(forms.ModelForm):
+    class Meta:
+        model = Firma
+        fields = '__all__'
+        widgets = {
+            'sirket_kodu': forms.TextInput(attrs={'class': 'form-input', 'readonly': 'readonly', 'placeholder': 'Sistem Tarafından Otomatik Verilecektir'}),
+            'ad': forms.TextInput(attrs={'class': 'form-input'}),
+            'iletisim': forms.TextInput(attrs={'class': 'form-input'}),
+        }
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            if not isinstance(field.widget, forms.CheckboxInput) and not isinstance(field.widget, forms.FileInput):
+                field.widget.attrs['class'] = 'form-input'
+
+class SigortaForm(forms.ModelForm):
+    class Meta:
+        model = Sigorta
+        exclude = ['arac']
+        widgets = {
+            'police_tarihi': forms.DateInput(attrs={'type': 'date', 'class': 'form-input'}),
+            'police_bitis_tarihi': forms.DateInput(attrs={'type': 'date', 'class': 'form-input'}),
+            'police_no': forms.TextInput(attrs={'class': 'form-input'}),
+            'tutar': forms.NumberInput(attrs={'class': 'form-input'}),
+        }
+
+class HasarForm(forms.ModelForm):
+    class Meta:
+        model = Hasar
+        exclude = ['arac']
+        widgets = {
+            'hasar_tarihi': forms.DateInput(attrs={'type': 'date', 'class': 'form-input'}),
+            'dosya_no': forms.TextInput(attrs={'class': 'form-input'}),
+            'hasar_turu': forms.TextInput(attrs={'class': 'form-input'}),
+            'ekspertiz': forms.TextInput(attrs={'class': 'form-input'}),
+            'muafiyet_tutari': forms.NumberInput(attrs={'class': 'form-input'}),
+        }
+
+class BakimForm(forms.ModelForm):
+    class Meta:
+        model = Bakim
+        exclude = ['arac']
+        widgets = {
+            'sonraki_bakim_tarihi': forms.DateInput(attrs={'type': 'date', 'class': 'form-input'}),
+            'bakim_km': forms.NumberInput(attrs={'class': 'form-input'}),
+            'sonraki_bakim_km': forms.NumberInput(attrs={'class': 'form-input'}),
+        }
+
+
+
+class MasrafForm(forms.ModelForm):
+    class Meta:
+        model = Masraf
+        fields = '__all__'
+        widgets = {
+            'tarih': forms.DateInput(attrs={'type': 'date', 'class': 'form-input'}),
+            'aciklama': forms.Textarea(attrs={'class': 'form-input', 'rows': 3, 'placeholder': 'Masraf ile ilgili detaylı açıklama...'}),
+            'belge': forms.FileInput(attrs={'class': 'form-input', 'accept': '.pdf,image/*'}) # Sadece resim ve PDF kabul et
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            if field_name not in ['tarih', 'aciklama', 'belge']:
+                if not isinstance(field.widget, forms.CheckboxInput):
+                    field.widget.attrs['class'] = 'form-input'
+
+
+class CezaForm(forms.ModelForm):
+    class Meta:
+        model = Ceza
+        fields = '__all__'
+        widgets = {
+            'tarih': forms.DateInput(attrs={'type': 'date', 'class': 'form-input'}),
+            'saat': forms.TimeInput(attrs={'type': 'time', 'class': 'form-input'}),
+            'son_odeme_tarihi': forms.DateInput(attrs={'type': 'date', 'class': 'form-input'}),
+            'aciklama': forms.Textarea(attrs={'class': 'form-input', 'rows': 3, 'placeholder': 'Ceza ile ilgili detaylı bilgi...'}),
+            'belge': forms.FileInput(attrs={'class': 'form-input', 'accept': '.pdf,image/*'})
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            if field_name not in ['tarih', 'saat', 'son_odeme_tarihi', 'aciklama', 'belge']:
+                if not isinstance(field.widget, forms.CheckboxInput):
+                    field.widget.attrs['class'] = 'form-input'
+
+class KiralamaForm(forms.ModelForm):
+    class Meta:
+        model = Kiralama
+        exclude = ['teslim_edilen_kisiler']
+        widgets = {
+            'teklif_baslangic': forms.DateInput(attrs={'type': 'date'}),
+            'teklif_gecerlilik_sonu': forms.DateInput(attrs={'type': 'date'}),
+            'baslangic_tarihi': forms.DateInput(attrs={'type': 'date'}),
+            'bitis_tarihi': forms.DateInput(attrs={'type': 'date'}),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            if not isinstance(field.widget, forms.CheckboxInput):
+                field.widget.attrs['class'] = 'form-input'
+        
+        if 'arac' in self.fields:
+            if hasattr(self.instance, 'arac') and self.instance.arac:
+                self.fields['arac'].queryset = Arac.objects.filter(Q(arac_durumu='bosta') | Q(id=self.instance.arac.id))
+                self.fields['arac'].queryset = Arac.objects.filter(arac_durumu='bosta')
+
+class MuhatapForm(forms.ModelForm):
+    class Meta:
+        model = Muhatap
+        exclude = ['slug']
+        widgets = {
+            'musteri_kodu': forms.TextInput(attrs={'class': 'form-input', 'readonly': 'readonly', 'placeholder': 'Sistem Tarafından Otomatik Verilecektir'}),
+            'unvan': forms.TextInput(attrs={'class': 'form-input'}),
+            'vkn': forms.TextInput(attrs={'class': 'form-input'}),
+            'eposta': forms.EmailInput(attrs={'class': 'form-input'}),
+            'telefon': forms.TextInput(attrs={'class': 'form-input'}),
+            'adres': forms.Textarea(attrs={'class': 'form-input', 'rows': 3}),
+            'il': forms.Select(attrs={'class': 'form-input'}),
+            'ilce': forms.TextInput(attrs={'class': 'form-input'}),
+            'vergi_dairesi': forms.TextInput(attrs={'class': 'form-input'}),
+        }
+        
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            if not isinstance(field.widget, forms.CheckboxInput):
+                field.widget.attrs['class'] = 'form-input'

@@ -1,0 +1,95 @@
+{% extends "transfer/base.html" %}
+
+{% block title %}Trafik Cezaları Takip Listesi{% endblock %}
+
+{% block content %}
+<div class="card-container-large">
+    <div class="card-header">
+        <h1 class="card-title">Trafik Cezaları</h1>
+        
+        <div style="display: flex; gap: 10px;">
+            
+            <a href="{% url 'ceza_raporu_belge' %}" target="_blank" class="btn-gray" style="background: #475569; color: white;">
+                <i class="fas fa-print"></i> Rapor Yazdır / PDF
+            </a>
+            
+            <a href="{% url 'ceza_ekle' %}" class="btn-blue">
+                <i class="fas fa-plus"></i> Yeni Ceza Ekle
+            </a>
+            
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>  
+                    <th>Tarih & Saat</th>
+                    <th>Araç & Personel</th>
+                    <th>İhlal / Ceza Maddesi</th>
+                    <th>Tutar</th>
+                    <th>Durum</th>
+                    <th>Belge</th>
+                    <th>İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ceza in cezalar %}
+                <tr>
+                    <td>
+                        <div class="table-text-bold">{{ ceza.tarih|date:"d.m.Y" }}</div>
+                        <div class="table-text-muted" style="font-size: 0.85rem;">Saat: {{ ceza.saat|time:"H:i"|default:"Bilinmiyor" }}</div>
+                    </td>
+                    <td>
+                        <div class="table-text-bold" style="color: #1f2937;"><i class="fas fa-car mr-1" style="color:#6b7280;"></i> {{ ceza.arac.plaka }}</div>
+                        <div class="table-text-muted" style="font-size: 0.85rem; margin-top:0.2rem;">
+                            <i class="fas fa-user-tie mr-1" style="color:#6b7280;"></i> {{ ceza.personel.ad_soyad|default:"Bilinmiyor" }}
+                        </div>
+                    </td>
+                    <td>
+                        <div style="color: #4b5563; font-size: 0.9rem;">{{ ceza.madde }}</div>
+                    </td>
+                    <td>
+                        <div class="table-text-bold" style="color: #ef4444; font-size: 1.1rem;">
+                            ₺{{ ceza.tutar }}
+                        </div>
+                    </td>
+                    <td>
+                        {% if ceza.odendi_mi %}
+                            <span class="badge badge-green"><i class="fas fa-check-circle mr-1"></i> Ödendi</span>
+                        {% else %}
+                            <span class="badge badge-red"><i class="fas fa-times-circle mr-1"></i> Ödenmedi</span>
+                            {% if ceza.son_odeme_tarihi %}
+                                <div style="font-size: 0.75rem; color: #ef4444; margin-top: 0.3rem;">Son: {{ ceza.son_odeme_tarihi|date:"d.m.Y" }}</div>
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                    <td style="text-align: center;">
+                        {% if ceza.belge %}
+                            <a href="{{ ceza.belge.url }}" target="_blank" class="btn-gray" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 0.3rem;">
+                                <i class="fas fa-file-pdf"></i> İncele
+                            </a>
+                        {% else %}
+                            <span style="color: #9ca3af; font-size: 0.8rem;">Belge Yok</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{% url 'ceza_duzenle' ceza.id %}" class="action-btn-blue" title="Düzenle"><i class="fas fa-edit"></i></a>
+                            <a href="{% url 'ceza_sil' ceza.id %}" class="action-btn-red" title="Sil"><i class="fas fa-trash"></i></a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="empty-state">
+                        <i class="fas fa-file-invoice-dollar empty-icon"></i>
+                        Sistemde kayıtlı trafik cezası bulunmuyor. Süper!
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

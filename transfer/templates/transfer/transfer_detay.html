@@ -1,0 +1,111 @@
+{% extends "transfer/base.html" %}
+
+{% block title %}Transfer Detayı{% endblock %}
+
+{% block content %}
+<div class="detail-container">
+    
+    <div class="detail-header">
+        <div>
+            <h1 class="detail-title">Transfer Detayı</h1>
+            <p class="detail-subtitle">Kayıt Numarası: #{{ transfer.id }}</p>
+        </div>
+        <div class="detail-actions">
+            <a href="{% url 'transfer_duzenle' transfer.id %}" class="btn-blue">
+                <i class="fas fa-edit"></i> Düzenle
+            </a>
+            <a href="{% url 'transfer_listesi' %}" class="btn-gray">
+                <i class="fas fa-arrow-left"></i> Listeye Dön
+            </a>
+        </div>
+    </div>
+
+    <div class="detail-grid">
+        
+        <div class="detail-section">
+            <h3 class="detail-section-title">
+                <i class="fas fa-user-circle text-blue-500 mr-2"></i> Müşteri Bilgileri
+            </h3>
+            <div class="detail-section-content">
+                {% if transfer.muhatap %}
+                    <p><span class="detail-label">Müşteri Adı:</span> <strong class="detail-value-bold">{{ transfer.muhatap.unvan }}</strong></p>
+                    <p><span class="detail-label">VKN/TCKN:</span> {{ transfer.muhatap.vkn|default:"-" }}</p>
+                    <p><span class="detail-label">Telefon:</span> {{ transfer.muhatap.telefon|default:"-" }}</p>
+                    <p><span class="detail-label">Adres:</span> {{ transfer.muhatap.adres|default:"-" }}</p>
+                    <p><span class="detail-label">Durum:</span> 
+                        {% if transfer.muhatap.aktif %}<span style="color:#10b981;">Aktif</span>{% else %}<span style="color:#ef4444;">Pasif</span>{% endif %}
+                    </p>
+                {% else %}
+                    <p><span class="detail-label">Müşteri Adı:</span> <strong class="detail-value-bold">{{ transfer.musteri_adi|default:"-" }}</strong></p>
+                    <p><span class="detail-label">Telefon:</span> {{ transfer.musteri_telefon|default:"-" }}</p>
+                    <p><span class="detail-label">E-Posta:</span> {{ transfer.musteri_mail|default:"-" }}</p>
+                    <p style="color:#f59e0b; font-size:0.8rem;"><i class="fas fa-exclamation-triangle"></i> Bu kayıt eski sistemle eklenmiş. Düzenleyerek muhatap seçimi yapabilirsiniz.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <h3 class="detail-section-title">
+                <i class="fas fa-route text-red-500 mr-2"></i> Rota ve Operasyon
+            </h3>
+            <div class="detail-section-content">
+                <p><span class="detail-label">Transfer Türü:</span> {{ transfer.get_transfer_turu_display }}</p>
+                <p><span class="detail-label">Çıkış Adresi & Saati:</span> <strong class="detail-value-bold">{{ transfer.alis_yeri }}</strong> ({{ transfer.alis_saati|date:"d.m.Y H:i" }})</p>
+                <p><span class="detail-label">Varış Adresi & Saati:</span> <strong class="detail-value-bold">{{ transfer.varis_yeri }}</strong> 
+                    {% if transfer.varis_saati %}({{ transfer.varis_saati|date:"d.m.Y H:i" }}){% else %}(Belirtilmemiş){% endif %}
+                </p>
+                <p><span class="detail-label">Sefer No:</span> {{ transfer.sefer_no|default:"-" }}</p>
+                <p><span class="detail-label">Durum:</span> 
+                    <span class="detail-badge-green">{{ transfer.get_transfer_durumu_display }}</span>
+                </p>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <h3 class="detail-section-title">
+                <i class="fas fa-users text-yellow-500 mr-2"></i> Yolcu ve Atama
+            </h3>
+            <div class="detail-section-content">
+                <p><span class="detail-label">Yolcu Durumu:</span> 
+                    {% if transfer.yolcu_geldi_mi %}
+                        <span class="detail-badge-green"><i class="fas fa-check mr-1"></i> Yolcu Alındı</span>
+                    {% else %}
+                        <span class="badge badge-red" style="padding: 0.2rem 0.5rem; border-radius: 0.25rem; font-size: 0.8rem; background: #fee2e2; color: #b91c1c;"><i class="fas fa-times mr-1"></i> Bekleniyor / Gelmedi</span>
+                    {% endif %}
+                </p>
+                <p><span class="detail-label">Yolcular:</span><br>
+                    {% for yolcu in transfer.yolcular_listesi.all %}
+                        - {{ yolcu.isim_soyisim }} {% if yolcu.telefon %}({{ yolcu.telefon }}){% endif %} - <i>{{ yolcu.get_yolcu_turu_display }}</i><br>
+                    {% empty %}
+                        <span style="color:#6b7280; font-style:italic;">Belirtilmedi</span>
+                    {% endfor %}
+                </p>
+                <p><span class="detail-label">Sayılar:</span> {{ transfer.kisi_sayisi }} Yetişkin, {{ transfer.cocuk_sayisi }} Çocuk, {{ transfer.bebek_sayisi }} Bebek</p>
+                <p><span class="detail-label">Atanan Personel:</span> 
+                    {% if transfer.personel %}<strong class="detail-value-bold">{{ transfer.personel }}</strong>{% else %}Atanmadı{% endif %}
+                </p>
+                <p><span class="detail-label">Atanan Araç:</span> 
+                    {% if transfer.arac_kodu %}<strong class="detail-value-bold">{{ transfer.arac_kodu.plaka }}</strong> ({{ transfer.arac_kodu.arac_kodu }}){% else %}Belirsiz{% endif %}
+                </p>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <h3 class="detail-section-title">
+                <i class="fas fa-wallet text-green-500 mr-2"></i> Finans
+            </h3>
+            <div class="detail-section-content">
+                <p><span class="detail-label">Tutar:</span> <strong class="detail-price">₺{{ transfer.tutar }}</strong></p>
+                <p><span class="detail-label">Ödeme Türü:</span> {{ transfer.get_odeme_turu_display }}</p>
+                <p><span class="detail-label">Ödeme Durumu:</span> 
+                    {% if transfer.odendi_mi %}<span class="detail-status-success"><i class="fas fa-check"></i> Ödendi</span>{% else %}<span class="detail-status-danger"><i class="fas fa-times"></i> Ödenmedi</span>{% endif %}
+                </p>
+                <p><span class="detail-label">Fatura:</span> 
+                    {% if transfer.faturalama_durumu %}Kesildi{% else %}Kesilmedi{% endif %}
+                </p>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends "transfer/base.html" %}
+
+{% block title %}Dashboard | Transfer Sistemi{% endblock %}
+
+{% block content %}
+<div class="card mb-6">
+    <h1 class="dashboard-title">Sistem Özeti</h1>
+    <p class="dashboard-subtitle">İşletmenizin anlık durumunu buradan takip edebilirsiniz.</p>
+
+    <div class="dashboard-grid">
+        
+        <div class="stat-card-blue">
+            <div class="stat-flex">
+                <div>
+                    <p class="stat-label-blue">Toplam Transfer</p>
+                    <p class="stat-value-blue">{{ toplam_transfer }}</p>
+                </div>
+                <div class="stat-icon-blue">
+                    <i class="fas fa-route"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card-yellow">
+            <div class="stat-flex">
+                <div>
+                    <p class="stat-label-yellow">Bekleyen İşler</p>
+                    <p class="stat-value-yellow">{{ bekleyen_transfer }}</p>
+                </div>
+                <div class="stat-icon-yellow">
+                    <i class="fas fa-clock"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card-green">
+            <div class="stat-flex">
+                <div>
+                    <p class="stat-label-green">Tamamlanan</p>
+                    <p class="stat-value-green">{{ tamamlanan_transfer }}</p>
+                </div>
+                <div class="stat-icon-green">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card-gray">
+            <div class="stat-flex">
+                <div>
+                    <p class="stat-label-gray">Toplam Kazanç</p>
+                    <p class="stat-value-gray">₺{{ toplam_kazanc }}</p>
+                </div>
+                <div class="stat-icon-gray">
+                    <i class="fas fa-wallet"></i>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

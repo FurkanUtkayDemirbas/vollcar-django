@@ -1,0 +1,148 @@
+{% extends "transfer/base.html" %}
+
+{% block title %}Trafik Cezaları Raporu{% endblock %}
+
+{% block content %}
+<style>
+    .btn-excel {
+        background-color: #10b981;
+        color: white;
+        border: 1px solid #10b981;
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        transition: all 0.2s ease-in-out;
+    }
+    
+    .btn-excel:hover {
+        background-color: #059669;
+        border-color: #059669;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3);
+    }
+</style>
+
+<div class="card-container-large">
+    <div class="card-header" style="border-bottom: 2px solid #f3f4f6; padding-bottom: 1.5rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h1 class="card-title"><i class="fas fa-file-invoice-dollar mr-2" style="color: #f59e0b;"></i> Trafik Cezaları Raporu</h1>
+            <p style="color: #6b7280; font-size: 0.875rem; margin-top: 0.25rem;">Araçların trafik cezalarını plaka ve personel bazlı gösteren detaylı rapor.</p>
+        </div>
+        <div style="display: flex; gap: 1rem;">
+            <button onclick="exportTableToExcel('cezaRaporTablosu', 'Trafik_Cezalari_Raporu')" class="btn-excel">
+                <i class="fas fa-file-excel mr-1"></i> Excel İndir
+            </button>
+            <a href="{% url 'raporlar_ana' %}" class="btn-gray"><i class="fas fa-arrow-left"></i> Raporlara Dön</a>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1.5rem; display: flex; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+            <div style="background: #fffbeb; color: #f59e0b; width: 3.5rem; height: 3.5rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-right: 1rem;">
+                <i class="fas fa-ticket-alt"></i>
+            </div>
+            <div>
+                <div style="color: #6b7280; font-size: 0.875rem; font-weight: 600;">Kesilen Toplam Ceza Tutarı</div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #1f2937;">₺{{ toplam_ceza_tutari|floatformat:2 }} <span style="font-size: 0.85rem; font-weight: normal; color: #9ca3af;">({{ toplam_ceza_sayisi }} Adet)</span></div>
+            </div>
+        </div>
+        
+        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1.5rem; display: flex; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+            <div style="background: #f0fdf4; color: #10b981; width: 3.5rem; height: 3.5rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-right: 1rem;">
+                <i class="fas fa-check-double"></i>
+            </div>
+            <div>
+                <div style="color: #6b7280; font-size: 0.875rem; font-weight: 600;">Ödenmiş / Kapatılmış Cezalar</div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #10b981;">₺{{ odenen_ceza|floatformat:2 }}</div>
+            </div>
+        </div>
+
+        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1.5rem; display: flex; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+            <div style="background: #fef2f2; color: #ef4444; width: 3.5rem; height: 3.5rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-right: 1rem;">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div>
+                <div style="color: #6b7280; font-size: 0.875rem; font-weight: 600;">Bekleyen / Ödenmemiş Borç</div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #ef4444;">₺{{ odenmeyen_ceza|floatformat:2 }} <span style="font-size: 0.85rem; font-weight: normal;">({{ odenmeyen_sayisi }} Adet)</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table class="data-table" id="cezaRaporTablosu">
+            <thead>
+                <tr>  
+                    <th>Ceza Tarihi</th>
+                    <th>Araç Plakası</th>
+                    <th>Şoför (Personel)</th>
+                    <th>İhlal Nedeni / Madde</th>
+                    <th>Tutar</th>
+                    <th>Son Ödeme Tarihi</th>
+                    <th>Durum</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ceza in cezalar %}
+                <tr>
+                    <td>
+                        <div class="table-text-bold" style="color: #1f2937;">{{ ceza.tarih|date:"d.m.Y" }}</div>
+                        {% if ceza.saat %}
+                            <div class="table-text-muted" style="font-size: 0.8rem;">Saat: {{ ceza.saat|time:"H:i" }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="table-text-bold" style="color: #1f2937;">
+                            {{ ceza.arac.plaka|default:"-" }}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="table-text-bold" style="color: #3b82f6;">
+                            {{ ceza.personel|default:"Şoför Belirtilmedi" }}
+                        </div>
+                    </td>
+                    <td>
+                        <div style="font-size: 0.85rem; color: #374151;">
+                            {{ ceza.madde|default:"-" }}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="table-text-bold" style="color: #ef4444; font-size: 1.1rem;">
+                            ₺{{ ceza.tutar|floatformat:2 }}
+                        </div>
+                    </td>
+                    <td>
+                        <div style="font-size: 0.85rem; font-weight: 600; color: #4b5563;">
+                            {{ ceza.son_odeme_tarihi|date:"d.m.Y"|default:"-" }}
+                        </div>
+                    </td>
+                    <td>
+                        {% if ceza.odendi_mi %}
+                            <span class="badge badge-green" style="padding: 0.4rem 0.8rem;"><i class="fas fa-check mr-1"></i> Ödendi</span>
+                        {% else %}
+                            <span class="badge badge-red" style="padding: 0.4rem 0.8rem;"><i class="fas fa-times mr-1"></i> Ödenmedi</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="empty-state">Sistemde raporlanacak trafik cezası bulunamadı. Temiz bir filonuz var!</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+    function exportTableToExcel(tableID, filename = ''){
+        var table = document.getElementById(tableID);
+        var wb = XLSX.utils.table_to_book(table, {sheet: "Ceza Raporu"});
+        filename = filename ? filename + '.xlsx' : 'Ceza_Raporu.xlsx';
+        XLSX.writeFile(wb, filename);
+    }
+</script>
+{% endblock %}

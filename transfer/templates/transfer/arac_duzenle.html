@@ -1,0 +1,161 @@
+{% extends "transfer/base.html" %}
+
+{% block title %}Araç Düzenle: {{ form.instance.plaka }}{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-header">
+        <h1 class="form-title">Araç Bilgilerini Düzenle: <span style="color:#3b82f6;">{{ form.instance.plaka }}</span></h1>
+        <a href="{% url 'arac_listesi' %}" class="btn-gray">
+            <i class="fas fa-arrow-left"></i> İptal ve Listeye Dön
+        </a>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="form-section">
+            <h3 class="section-title form-section-blue"><i class="fas fa-car mr-2"></i> Araç Temel Bilgileri</h3>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Şirket</label>
+                    {{ form.firma }}
+                </div>
+                <div class="form-group">
+                    <label>Araç Türü</label>
+                    {{ form.arac_turu }}
+                </div>
+                <div class="form-group">
+                    <label>Araç Kodu</label>
+                    {{ form.arac_kodu }}
+                </div>
+                <div class="form-group">
+                    <label>Plaka</label>
+                    {{ form.plaka }}
+                </div>
+                <div class="form-group">
+                    <label>Kapasite (Kişi)</label>
+                    {{ form.kapasite }}
+                </div>
+                <div class="form-group">
+                    <label>Marka</label>
+                    {{ form.marka }}
+                </div>
+                <div class="form-group">
+                    <label>Model Tanımı</label>
+                    {{ form.model_tanim }}
+                </div>
+                <div class="form-group">
+                    <label>Model Yılı</label>
+                    {{ form.model_yili }}
+                </div>
+                <div class="form-group">
+                    <label>Renk</label>
+                    {{ form.renk }}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section" style="margin-top:20px;">
+            <h3 class="section-title form-section-green"><i class="fas fa-info-circle mr-2"></i> Teknik ve Durum Bilgileri</h3>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Vites</label>
+                    {{ form.vites }}
+                </div>
+                <div class="form-group">
+                    <label>Yakıt Tipi</label>
+                    {{ form.yakit_tipi }}
+                </div>
+                <div class="form-group">
+                    <label>Mülkiyet Durumu</label>
+                    {{ form.mulkiyet_durumu }}
+                </div>
+                <div class="form-group">
+                    <label>Araç Durumu</label>
+                    {{ form.arac_durumu }}
+                </div>
+                <div class="form-group">
+                    <label>Araç Kimde? (Aktif Görevli)</label>
+                    {{ form.arac_kimde }}
+                </div>
+                <div class="form-group">
+                    <label>Segment</label>
+                    {{ form.segment }}
+                </div>
+                <div class="form-group">
+                    <label>Şase No</label>
+                    {{ form.sase_no }}
+                </div>
+                <div class="form-group">
+                    <label>Motor No</label>
+                    {{ form.motor_no }}
+                </div>
+                <div class="form-group">
+                    <label>Plaka İl Kodu</label>
+                    {{ form.il_kodu }}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section" style="margin-top:20px;">
+            <h3 class="section-title form-section-yellow"><i class="fas fa-calendar-alt mr-2"></i> Tescil ve Muayene Tarihleri</h3>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Tescil Sıra No</label>
+                    {{ form.tescil_sira_no }}
+                </div>
+                <div class="form-group">
+                    <label>İlk Tescil Tarihi</label>
+                    {{ form.ilk_tescil_tarihi }}
+                </div>
+                <div class="form-group">
+                    <label>Tescil Tarihi</label>
+                    {{ form.tescil_tarihi }}
+                </div>
+                <div class="form-group">
+                    <label>Muayene Tarihi</label>
+                    {{ form.muayene_tarihi }}
+                </div>
+                <div class="form-group">
+                    <label>Egzoz Emisyon Tarihi</label>
+                    {{ form.egzoz_emisyon_tarihi }}
+                </div>
+                <div class="form-group">
+                    <label>Çekici Ruhsat Tarihi</label>
+                    {{ form.cekici_ruhsati_tarihi }}
+                </div>
+                <div class="form-group">
+                    <label>Seyrüsefer Tarihi</label>
+                    {{ form.serusefer_tarihi }}
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section" style="margin-top:20px;">
+            <h3 class="section-title form-section-gray"><i class="fas fa-image mr-2"></i> Araç Görseli</h3>
+            <div class="form-group">
+                {{ form.resim }}
+                {% if form.instance.resim %}
+                <div style="margin-top:10px;">
+                    <img src="{{ form.instance.resim.url }}" alt="Araç Resmi" style="max-height:200px; border-radius:8px;">
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if form.errors %}
+        <div class="error-container">
+            <h4 class="error-title"><i class="fas fa-exclamation-circle"></i> Lütfen aşağıdaki hataları düzeltin:</h4>
+            {{ form.errors }}
+        </div>
+        {% endif %}
+
+        <div class="form-footer">
+            <button type="submit" class="btn-blue btn-save">
+                <i class="fas fa-save mr-2"></i> Değişiklikleri Kaydet
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

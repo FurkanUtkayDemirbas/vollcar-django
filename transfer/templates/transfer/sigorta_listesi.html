@@ -1,0 +1,78 @@
+{% extends "transfer/base.html" %}
+
+{% block title %}Sigorta Poliçeleri{% endblock %}
+
+{% block content %}
+<div class="card-container-large">
+    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f3f4f6; padding-bottom: 1rem; margin-bottom: 1.5rem;">
+        <div>
+            <h1 class="card-title"><i class="fas fa-shield-alt mr-2" style="color: #3b82f6;"></i> Sigorta Poliçeleri</h1>
+            <p style="color: #6b7280; font-size: 0.875rem; margin-top: 0.25rem;">Filonuzdaki araçlara ait aktif ve geçmiş sigorta kayıtları.</p>
+        </div>
+        <a href="{% url 'sigorta_ekle' %}" class="btn-gray" style="background-color: #3b82f6; color: white; border-color: #3b82f6; text-decoration: none;">
+            <i class="fas fa-plus mr-1"></i> Yeni Poliçe Ekle
+        </a>
+    </div>
+
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>  
+                    <th>Araç Plakası</th>
+                    <th>Sigorta Şirketi & Türü</th>
+                    <th>Poliçe No</th>
+                    <th>Başlangıç Tarihi</th>
+                    <th>Bitiş Tarihi</th>
+                    <th>Tutar</th>
+                    <th>İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sigorta in sigortalar %}
+                <tr>
+                    <td>
+                        <div class="table-text-bold" style="color: #1f2937; font-size: 1.1rem;">{{ sigorta.arac.plaka }}</div>
+                    </td>
+                    
+                    <td>
+                        <div class="table-text-bold" style="color: #4b5563;">{{ sigorta.sigorta_sirketi|default:"Belirtilmemiş" }}</div>
+                        <div style="font-size: 0.8rem; color: #6b7280;">{{ sigorta.get_sigorta_turu_display }}</div>
+                    </td>
+                    
+                    <td>
+                        <div style="font-size: 0.9rem; font-family: monospace; color: #374151;">{{ sigorta.police_no }}</div>
+                    </td>
+                    
+                    <td>
+                        <div style="color: #4b5563; font-weight: 500;">{{ sigorta.police_tarihi|date:"d.m.Y" }}</div>
+                    </td>
+                    
+                    <td>
+                        <div class="table-text-bold" style="color: #ef4444;">{{ sigorta.police_bitis_tarihi|date:"d.m.Y" }}</div>
+                    </td>
+                    
+                    <td>
+                        <div class="table-text-bold" style="color: #10b981; font-size: 1.1rem;">₺{{ sigorta.tutar|floatformat:2 }}</div>
+                    </td>
+                    
+                    <td>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <a href="{% url 'sigorta_duzenle' sigorta.id %}" class="btn-gray" style="padding: 0.3rem 0.6rem; color: #3b82f6; text-decoration: none;" title="Düzenle">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'sigorta_sil' sigorta.id %}" class="btn-gray" style="padding: 0.3rem 0.6rem; color: #ef4444; text-decoration: none;" onclick="return confirm('Bu poliçeyi silmek istediğinize emin misiniz?');" title="Sil">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="empty-state">Henüz sisteme eklenmiş bir sigorta poliçesi bulunmuyor. Sağ üstteki butondan yeni poliçe ekleyebilirsiniz.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

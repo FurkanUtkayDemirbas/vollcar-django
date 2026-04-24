@@ -1,0 +1,182 @@
+{% extends "transfer/base.html" %}
+
+{% block title %}Hatırlatma ve Alarm Raporu{% endblock %}
+
+{% block content %}
+<style>
+    .btn-excel {
+        background-color: #10b981;
+        color: white;
+        border: 1px solid #10b981;
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        transition: all 0.2s ease-in-out;
+    }
+    
+    .btn-excel:hover {
+        background-color: #059669;
+        border-color: #059669;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3);
+    }
+</style>
+
+<div class="card-container-large">
+    <div class="card-header" style="border-bottom: 2px solid #f3f4f6; padding-bottom: 1.5rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h1 class="card-title"><i class="fas fa-bell mr-2" style="color: #ec4899;"></i> Kritik Hatırlatma Raporu</h1>
+            <p style="color: #6b7280; font-size: 0.875rem; margin-top: 0.25rem;">Muayene, sigorta ve emisyon süreleri yaklaşan/geçen araçların uyarı listesi.</p>
+        </div>
+        <div style="display: flex; gap: 1rem;">
+            <button onclick="exportTableToExcel('hatirlatmaRaporTablosu', 'Arac_Alarm_Raporu')" class="btn-excel">
+                <i class="fas fa-file-excel mr-1"></i> Excel İndir
+            </button>
+            <a href="{% url 'raporlar_ana' %}" class="btn-gray"><i class="fas fa-arrow-left"></i> Raporlara Dön</a>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1.5rem; display: flex; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 5px solid #ef4444;">
+            <div style="background: #fef2f2; color: #ef4444; width: 3.5rem; height: 3.5rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-right: 1rem;">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <div>
+                <div style="color: #6b7280; font-size: 0.875rem; font-weight: 600;">Süresi Geçen Uyarılar (Acil)</div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #ef4444;">{{ gecmis_sayisi }} Adet</div>
+            </div>
+        </div>
+        
+        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1.5rem; display: flex; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 5px solid #f59e0b;">
+            <div style="background: #fffbeb; color: #f59e0b; width: 3.5rem; height: 3.5rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-right: 1rem;">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div>
+                <div style="color: #6b7280; font-size: 0.875rem; font-weight: 600;">Süresi Yaklaşanlar (< 30 Gün)</div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #f59e0b;">{{ yaklasan_sayisi }} Adet</div>
+            </div>
+        </div>
+
+        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1.5rem; display: flex; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border-left: 5px solid #10b981;">
+            <div style="background: #f0fdf4; color: #10b981; width: 3.5rem; height: 3.5rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-right: 1rem;">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <div>
+                <div style="color: #6b7280; font-size: 0.875rem; font-weight: 600;">Tüm Evrakları Tam Araçlar</div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #10b981;">{{ sorunsuz_arac_sayisi }} Araç</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table class="data-table" id="hatirlatmaRaporTablosu">
+            <thead>
+                <tr>  
+                    <th>Araç Plakası</th>
+                    <th>Araç Marka & Model</th>
+                    <th>Uyarı (Evrak) Türü</th>
+                    <th>Sigorta Şirketi</th>
+                    <th>Poliçe No</th>
+                    <th>Son Geçerlilik Tarihi</th>
+                    <th>Kalan Süre / Durum</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for uyari in uyari_listesi %}
+                <tr>
+                    <td>
+                        <div class="table-text-bold" style="color: #1f2937; font-size: 1.1rem;">{{ uyari.arac.plaka }}</div>
+                    </td>
+                    <td>
+                        <div style="font-size: 0.85rem; color: #4b5563; font-weight: 500;">
+                            {{ uyari.arac.marka|default:"" }} {{ uyari.arac.model_tanim|default:"" }}
+                        </div>
+                    </td>
+                    <td>
+                        <div style="background: #f3f4f6; padding: 0.3rem 0.6rem; border-radius: 0.3rem; display: inline-block; font-size: 0.85rem; font-weight: 600; color: #374151;">
+                            {{ uyari.tur }}
+                        </div>
+                    </td>
+                    <td>
+                        <div style="font-size: 0.85rem; color: #3b82f6; font-weight: 600;">
+                            {{ uyari.sirket }}
+                        </div>
+                    </td>
+                    <td>
+                        <div style="font-size: 0.85rem; color: #4b5563; font-weight: 500;">
+                            {{ uyari.police_no }}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="table-text-bold" style="color: #4b5563;">
+                            {{ uyari.tarih|date:"d.m.Y" }}
+                        </div>
+                    </td>
+                    <td>
+                        {% if uyari.durum == 'Gecmis' %}
+                            <span class="badge badge-red" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;"><i class="fas fa-exclamation-triangle mr-1"></i> Süresi Doldu! (Geçti)</span>
+                        {% else %}
+                            <span class="badge badge-yellow" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;"><i class="fas fa-hourglass-half mr-1"></i> {{ uyari.kalan }} Gün Kaldı</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="empty-state">
+                        <i class="fas fa-check-circle" style="font-size: 3rem; color: #10b981; margin-bottom: 1rem; display: block;"></i>
+                        Tebrikler! Filodaki hiçbir aracın süresi geçmiş veya yaklaşan (30 günden az) evrağı bulunmuyor.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+    function exportTableToExcel(tableID, filename = ''){
+        var excelData = [
+            ["Hatırlatma Raporu"], 
+            [], 
+            ["Araçların poliçe, muayene ve diğer uyarı tarihi geçen araçlar için hatırlatma raporudur."],
+            [], 
+            ["Araç Plakası", "Araç Marka & Model", "Uyarı Türü", "Sigorta Şirketi", "Poliçe No", "Son Geçerlilik Tarihi", "Kalan Süre / Durum"]
+        ];
+
+        var table = document.getElementById(tableID);
+        var rows = table.querySelectorAll('tbody tr');
+
+        if (rows.length > 0 && !rows[0].classList.contains('empty-state')) {
+            rows.forEach(function(row) {
+                var rowData = [];
+                var cells = row.querySelectorAll('td');
+                
+                rowData.push(cells[0].innerText.trim());
+                rowData.push(cells[1].innerText.trim().replace(/\n/g, " ")); 
+                rowData.push(cells[2].innerText.trim());
+                rowData.push(cells[3].innerText.trim()); // Şirket
+                rowData.push(cells[4].innerText.trim()); // Poliçe No
+                rowData.push(cells[5].innerText.trim()); // Tarih
+                rowData.push(cells[6].innerText.trim()); // Durum
+                
+                excelData.push(rowData);
+            });
+        } else {
+            excelData.push(["Şu an için süresi geçen veya yaklaşan evrak bulunmamaktadır."]);
+        }
+
+        var ws = XLSX.utils.aoa_to_sheet(excelData);
+        var wscols = [ {wch: 15}, {wch: 25}, {wch: 25}, {wch: 20}, {wch: 20}, {wch: 20}, {wch: 25} ];
+        ws['!cols'] = wscols;
+
+        var wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Alarm Raporu");
+        filename = filename ? filename + '.xlsx' : 'Alarm_Raporu.xlsx';
+        XLSX.writeFile(wb, filename);
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "transfer/base.html" %}
+
+{% block title %}Personel Sil Onayı{% endblock %}
+
+{% block content %}
+<div class="delete-container">
+    <div class="delete-card">
+        <div class="delete-icon-wrapper">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h2 class="delete-title">Emin misiniz?</h2>
+        <p class="delete-text">
+            <strong>{{ personel }}</strong> isimli personeli sistemden tamamen silmek üzeresiniz. Bu işlem geri alınamaz.
+        </p>
+
+        <form method="POST" class="delete-actions">
+            {% csrf_token %}
+            <a href="{% url 'personel_listesi' %}" class="btn-gray">
+                Vazgeç ve Geri Dön
+            </a>
+            <button type="submit" class="btn-red">
+                <i class="fas fa-trash-alt"></i> Evet, Kalıcı Olarak Sil
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

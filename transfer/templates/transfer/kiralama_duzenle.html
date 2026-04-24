@@ -1,0 +1,100 @@
+{% extends "transfer/base.html" %}
+
+{% block title %}{{ baslik }}{% endblock %}
+
+{% block content %}
+<style>
+    .form-group label { display: block; font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 0.35rem; }
+    .form-group input, .form-group select { width: 100%; padding: 0.6rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.875rem; outline: none; transition: border-color 0.2s; }
+    .form-group input:focus, .form-group select:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
+    .form-section { background: #f9fafb; padding: 1.5rem; border-radius: 0.5rem; border: 1px solid #e5e7eb; margin-bottom: 1.5rem;}
+    .section-title { font-size: 1.125rem; font-weight: bold; margin-bottom: 1.25rem; border-bottom: 1px solid #d1d5db; padding-bottom: 0.5rem; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+</style>
+
+<div style="max-width: 1000px; margin: 0 auto; background: white; padding: 2.5rem; border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f3f4f6; padding-bottom: 1.5rem; margin-bottom: 2rem;">
+        <h1 style="font-size: 1.5rem; font-weight: bold; color: #1f2937;">{{ baslik }}</h1>
+        <a href="{% url 'kiralama_listesi' %}" class="btn-gray"><i class="fas fa-arrow-left"></i> Listeye Dön</a>
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+        
+        {% if form.errors %}
+        <div style="background: #fee2e2; border: 1px solid #ef4444; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem; color: #b91c1c;">
+            <strong style="display: block; margin-bottom: 0.5rem;"><i class="fas fa-exclamation-circle"></i> Lütfen hataları düzeltin:</strong>
+            {{ form.errors }}
+        </div>
+        {% endif %}
+
+        <div class="form-section">
+            <h3 class="section-title" style="color: #3b82f6;"><i class="fas fa-car mr-2"></i> Araç ve Teklif Bilgileri</h3>
+            <div class="grid-2">
+                <div class="form-group" style="grid-column: span 2;"><label>Kiralanacak Araç</label>{{ form.arac }}</div>
+                <div class="form-group"><label>Teklif Başlangıç Tarihi</label>{{ form.teklif_baslangic }}</div>
+                <div class="form-group"><label>Teklif Geçerlilik Sonu</label>{{ form.teklif_gecerlilik_sonu }}</div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3 class="section-title" style="color: #ef4444;"><i class="fas fa-calendar-check mr-2"></i> Kiralama Detayları</h3>
+            <div class="grid-2">
+                <div class="form-group"><label>Kiralama Başlangıç</label>{{ form.baslangic_tarihi }}</div>
+                <div class="form-group"><label>Kiralama Bitiş</label>{{ form.bitis_tarihi }}</div>
+                <div class="form-group"><label>Süre</label>{{ form.sure }}</div>
+                <div class="form-group"><label>Süre Birimi</label>{{ form.sure_birimi }}</div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h3 class="section-title" style="color: #10b981;"><i class="fas fa-money-bill-wave mr-2"></i> Finansal ve Müşteri Bilgileri</h3>
+            <div class="grid-2">
+                <div class="form-group"><label>Birim Fiyat (₺)</label>{{ form.birim_fiyat }}</div>
+                <div class="form-group"><label>Toplam Tutar (₺)</label>{{ form.toplam_tutar }}</div>
+                <div class="form-group" style="grid-column: span 2;">
+                    <label style="display:flex; justify-content:space-between; align-items:center;">
+                        <span>Müşteri (Muhatap) Seçin</span>
+                        <a href="{% url 'muhatap_ekle' %}" target="_blank" style="font-size:0.8rem; color:#3b82f6; text-decoration:none;"><i class="fas fa-plus"></i> Yeni Müşteri Ekle</a>
+                    </label>
+                    {{ form.muhatap }}
+                </div>
+                <div class="form-group" style="display: flex; align-items: center; background: white; padding: 1rem; border-radius: 0.5rem; border: 1px solid #e5e7eb;">
+                    {{ form.sozlesme_imzalandi }}
+                    <label style="margin-bottom: 0; cursor: pointer; margin-left: 0.5rem;">Sözleşme İmzalandı mı?</label>
+                </div>
+            </div>
+        </div>
+
+        <div style="border-top: 2px solid #f3f4f6; padding-top: 1.5rem; display: flex; justify-content: flex-end;">
+            <button type="submit" class="btn-blue" style="font-size: 1.125rem; padding: 0.75rem 2.5rem;"><i class="fas fa-save mr-2"></i> Kaydet</button>
+        </div>
+    </form>
+</div>
+
+<!-- Otomatik Toplam Tutar Hesaplama Scripti -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Django'nun standart id formatları: id_sure ve id_birim_fiyat
+    const sureInput = document.getElementById('id_sure');
+    const birimFiyatInput = document.getElementById('id_birim_fiyat');
+    const toplamTutarInput = document.getElementById('id_toplam_tutar');
+
+    function hesapla() {
+        // Değerleri al, boşsa 0 kabul et
+        const sure = parseFloat(sureInput.value) || 0;
+        const birimFiyat = parseFloat(birimFiyatInput.value) || 0;
+        
+        // Çarp ve Toplam Tutar alanına yazdır
+        const sonuc = (sure * birimFiyat).toFixed(2);
+        toplamTutarInput.value = sonuc;
+    }
+
+    if (sureInput && birimFiyatInput && toplamTutarInput) {
+        // Her iki alanda bir değişiklik olduğunda anında hesapla
+        sureInput.addEventListener('input', hesapla);
+        birimFiyatInput.addEventListener('input', hesapla);
+    }
+});
+</script>
+{% endblock %}

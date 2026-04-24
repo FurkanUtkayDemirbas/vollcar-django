@@ -1,0 +1,69 @@
+{% extends "transfer/base.html" %}
+
+{% block title %}Raporlama Merkezi{% endblock %}
+
+{% block content %}
+<style>
+    .report-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
+    .report-card { background: white; border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; transition: transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; }
+    .report-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border-color: #3b82f6; }
+    .report-icon { width: 3rem; height: 3rem; border-radius: 0.5rem; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-bottom: 1rem; }
+    .report-title { font-size: 1.25rem; font-weight: bold; color: #1f2937; margin-bottom: 0.5rem; }
+    .report-desc { color: #6b7280; font-size: 0.875rem; line-height: 1.5; flex-grow: 1; margin-bottom: 1.5rem; }
+    .report-btn { text-align: center; background: #f3f4f6; color: #374151; font-weight: 600; padding: 0.5rem; border-radius: 0.5rem; transition: background 0.2s, color 0.2s; }
+    .report-card:hover .report-btn { background: #3b82f6; color: white; }
+</style>
+
+<div class="card-container-large">
+    <div class="card-header" style="border-bottom: 2px solid #f3f4f6; padding-bottom: 1rem;">
+        <div>
+            <h1 class="card-title" style="font-size: 1.8rem;">Raporlama Merkezi</h1>
+            <p style="color: #6b7280; font-size: 0.9rem; margin-top: 0.2rem;">Sistemdeki tüm verilerin analiz ve özet ekranları</p>
+        </div>
+    </div>
+
+    <div class="report-grid">
+        <a href="{% url 'arac_raporu' %}" style="text-decoration: none;" class="report-card">
+            <div class="report-icon" style="background: #eff6ff; color: #3b82f6;"><i class="fas fa-car"></i></div>
+            <h2 class="report-title">Araç Raporu</h2>
+            <p class="report-desc">Araçların yıl içerisindeki toplam masraf tutarlarını, ceza tutarlarını ve boş/dolu olma (müsaitlik) durumlarını gösterir.</p>
+            <div class="report-btn">Raporu Görüntüle <i class="fas fa-arrow-right ml-1"></i></div>
+        </a>
+
+        <a href="{% url 'transfer_raporu' %}" style="text-decoration: none;" class="report-card">
+            <div class="report-icon" style="background: #f0fdf4; color: #10b981;"><i class="fas fa-exchange-alt"></i></div>
+            <h2 class="report-title">Transfer Raporu</h2>
+            <p class="report-desc">Araçların transfer kayıtlarının toplam tutarları ve ödeme (tahsilat) durumlarını gösteren detaylı rapordur.</p>
+            <div class="report-btn">Raporu Görüntüle <i class="fas fa-arrow-right ml-1"></i></div>
+        </a>
+
+        <a href="{% url 'masraf_raporu' %}" style="text-decoration: none;" class="report-card">
+            <div class="report-icon" style="background: #fef2f2; color: #ef4444;"><i class="fas fa-wallet"></i></div>
+            <h2 class="report-title">Masraf Raporu</h2>
+            <p class="report-desc">Yapılan masrafları türlerine göre gösterir. Araç (plaka) bazlı ve genel giderleri ayırarak işlem detaylarını sunar.</p>
+            <div class="report-btn">Raporu Görüntüle <i class="fas fa-arrow-right ml-1"></i></div>
+        </a>
+
+        <a href="{% url 'ceza_raporu' %}" style="text-decoration: none;" class="report-card">
+            <div class="report-icon" style="background: #fffbeb; color: #f59e0b;"><i class="fas fa-file-invoice-dollar"></i></div>
+            <h2 class="report-title">Ceza Raporu</h2>
+            <p class="report-desc">Araçlar için alınan trafik cezalarını plaka bazlı gösterir. Ödenmiş ve ödenmemiş cezaların takibini sağlar.</p>
+            <div class="report-btn">Raporu Görüntüle <i class="fas fa-arrow-right ml-1"></i></div>
+        </a>
+
+        <a href="{% url 'kiralama_raporu' %}" style="text-decoration: none;" class="report-card">
+            <div class="report-icon" style="background: #faf5ff; color: #a855f7;"><i class="fas fa-key"></i></div>
+            <h2 class="report-title">Kiralama Raporu</h2>
+            <p class="report-desc">Araçların kiralama sözleşmelerini, kiralama sürelerini ve bu sözleşmelerden elde edilen gelir durumlarını listeler.</p>
+            <div class="report-btn">Raporu Görüntüle <i class="fas fa-arrow-right ml-1"></i></div>
+        </a>
+
+        <a href="{% url 'hatirlatma_raporu' %}" style="text-decoration: none;" class="report-card">
+            <div class="report-icon" style="background: #fdf2f8; color: #ec4899;"><i class="fas fa-bell"></i></div>
+            <h2 class="report-title">Hatırlatma Raporu</h2>
+            <p class="report-desc">Araçların sigorta poliçesi, araç muayenesi, egzoz emisyonu ve diğer kritik uyarı tarihleri yaklaşan/geçenleri listeler.</p>
+            <div class="report-btn">Raporu Görüntüle <i class="fas fa-arrow-right ml-1"></i></div>
+        </a>
+    </div>
+</div>
+{% endblock %}

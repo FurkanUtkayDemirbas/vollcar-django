@@ -1,0 +1,53 @@
+{% extends "transfer/base.html" %}
+
+{% block title %}Şirketler{% endblock %}
+
+{% block content %}
+<div class="card-container-large">
+    <div class="card-header">
+        <h1 class="card-title">Şirket Yönetimi</h1>
+        <a href="{% url 'firma_ekle' %}" class="btn-blue">
+            <i class="fas fa-plus"></i> Yeni Şirket Ekle
+        </a>
+    </div>
+
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Şirket Kodu</th>
+                    <th>Şirket Adı</th>
+                    <th>İletişim</th>
+                    <th style="width: 150px;">İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for firma in firmalar %}
+                <tr>
+                    <td>
+                        <span style="background:#eff6ff; color:#1d4ed8; padding:2px 8px; border-radius:4px; font-size:0.85em; font-weight:bold;">{{ firma.sirket_kodu|default:"-" }}</span>
+                    </td>
+                    <td>
+                        <div class="table-text-bold">{{ firma.ad }}</div>
+                    </td>
+                    <td>{{ firma.iletisim|default:"-" }}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{% url 'firma_duzenle' firma.id %}" class="action-btn-blue"><i class="fas fa-edit"></i></a>
+                            <a href="{% url 'firma_sil' firma.id %}" class="action-btn-red"><i class="fas fa-trash"></i></a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="empty-state">
+                        <i class="fas fa-building empty-icon"></i>
+                        Sistemde kayıtlı şirket bulunmamaktadır.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

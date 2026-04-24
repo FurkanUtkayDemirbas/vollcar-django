@@ -1,0 +1,98 @@
+{% extends "transfer/base.html" %}
+
+{% block title %}Araç Filosu Yönetimi{% endblock %}
+
+{% block content %}
+<div class="card-container-large">
+    <div class="card-header">
+        <h1 class="card-title">Araç Filosu Yönetimi</h1>
+        <a href="{% url 'arac_ekle' %}" class="btn-blue">
+            <i class="fas fa-plus"></i> Yeni Araç Ekle
+        </a>
+    </div>
+
+    <div class="filter-box">
+        <form method="GET" class="filter-form">
+            <div class="filter-input-wrapper">
+                <input type="text" name="q" value="{{ query }}" placeholder="Plaka, Marka veya Araç Kodu Ara..." class="form-input">
+            </div>
+            <button type="submit" class="btn-blue w-auto">
+                <i class="fas fa-search"></i> Ara
+            </button>
+            <a href="{% url 'arac_listesi' %}" class="btn-gray">
+                Temizle
+            </a>
+        </form>
+    </div>
+
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>  
+                    <th>Plaka & Kod</th>
+                    <th>Marka</th>
+                    <th>Teknik Detay</th>
+                    <th>Mülkiyet</th>
+                    <th>Durum</th>
+                    <th>İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for arac in araclar %}
+                <tr>
+                    <td>
+                        <div class="table-text-bold" style="font-size: 1.1rem;">{{ arac.plaka }}</div>
+                        <div class="table-text-muted" style="font-size: 0.8rem; margin-top: 0.2rem;">Kod: {{ arac.arac_kodu|default:"-" }}</div>
+                    </td>
+                    <td>
+                        <div class="table-text-bold" style="color: #374151;">{{ arac.marka }}</div>
+                        <div class="table-text-muted" style="font-size: 0.85rem; margin-top: 0.2rem;">{{ arac.model_yili|default:"Yıl Belirsiz" }} Model</div>
+                    </td>
+                    <td>
+                        <div class="table-text-muted">
+                            <i class="fas fa-cogs mr-1"></i> {{ arac.get_vites_display|default:"-" }}<br>
+                            <i class="fas fa-user mr-1" style="margin-top: 0.3rem;"></i> {{ arac.kapasite }} Kişilik
+                        </div>
+                    </td>
+                    <td style="vertical-align: middle;">
+                        <span class="badge {% if arac.mulkiyet_durumu == 'sirket' %}badge-blue{% else %}badge-yellow{% endif %}">
+                            {{ arac.get_mulkiyet_durumu_display }}
+                        </span>
+                    </td>
+                    <td style="vertical-align: middle;">
+                        <div>
+                            <span class="badge {% if arac.arac_durumu == 'bosta' %}badge-blue{% else %}badge-yellow{% endif %}">
+                                {{ arac.get_arac_durumu_display }}
+                            </span>
+                        </div>
+                        <div style="margin-top: 0.4rem;">
+                            {% if arac.current_availability %}
+                                <span class="badge" style="background-color: #10b981; color: white;">Müsait</span>
+                            {% else %}
+                                <span class="badge" style="background-color: #ef4444; color: white;">Meşgul (Görünen Tarihte)</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{% url 'arac_detay' arac.id %}" class="action-btn-blue" style="background-color: #10b981; color: white; border-color: #10b981;" title="Detayları İncele">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{% url 'arac_duzenle' arac.id %}" class="action-btn-blue" title="Aracı Düzenle"><i class="fas fa-edit"></i></a>
+                            <a href="{% url 'arac_sil' arac.id %}" class="action-btn-red" title="Aracı Sil"><i class="fas fa-trash"></i></a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="empty-state">
+                        <i class="fas fa-car empty-icon"></i>
+                        Sistemde henüz kayıtlı araç bulunmuyor.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

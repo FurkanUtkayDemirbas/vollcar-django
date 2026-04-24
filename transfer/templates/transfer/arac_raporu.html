@@ -1,0 +1,115 @@
+{% extends "transfer/base.html" %}
+
+{% block title %}Araç Performans ve Durum Raporu{% endblock %}
+
+{% block content %}
+<div class="card-container-large">
+    <div class="card-header" style="border-bottom: 2px solid #f3f4f6; padding-bottom: 1.5rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h1 class="card-title"><i class="fas fa-car mr-2" style="color: #3b82f6;"></i> Araç Performans Raporu</h1>
+            <p style="color: #6b7280; font-size: 0.875rem; margin-top: 0.25rem;">Filonuzdaki araçların müsaitlik durumu, masraf ve ceza analizleri.</p>
+        </div>
+        <div style="display: flex; gap: 1rem;">
+            <button onclick="exportTableToExcel('aracRaporTablosu', 'Arac_Performans_Raporu')" class="btn-gray" style="background-color: #10b981; color: white; border-color: #10b981;">
+                <i class="fas fa-file-excel mr-1"></i> Excel İndir
+            </button>
+            <a href="{% url 'raporlar_ana' %}" class="btn-gray"><i class="fas fa-arrow-left"></i> Raporlara Dön</a>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1.5rem; display: flex; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+            <div style="background: #eff6ff; color: #3b82f6; width: 3.5rem; height: 3.5rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-right: 1rem;">
+                <i class="fas fa-layer-group"></i>
+            </div>
+            <div>
+                <div style="color: #6b7280; font-size: 0.875rem; font-weight: 600;">Toplam Araç</div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #1f2937;">{{ toplam_arac }}</div>
+            </div>
+        </div>
+        
+        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1.5rem; display: flex; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+            <div style="background: #f0fdf4; color: #10b981; width: 3.5rem; height: 3.5rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-right: 1rem;">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div>
+                <div style="color: #6b7280; font-size: 0.875rem; font-weight: 600;">Şu An Müsait</div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #10b981;">{{ musait_arac }}</div>
+            </div>
+        </div>
+
+        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1.5rem; display: flex; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+            <div style="background: #fef2f2; color: #ef4444; width: 3.5rem; height: 3.5rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-right: 1rem;">
+                <i class="fas fa-route"></i>
+            </div>
+            <div>
+                <div style="color: #6b7280; font-size: 0.875rem; font-weight: 600;">Şu An Görevde / Dolu</div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #ef4444;">{{ mesgul_arac }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table class="data-table" id="aracRaporTablosu">
+            <thead>
+                <tr>  
+                    <th>Araç Plaka & Marka</th>
+                    <th>Anlık Müsaitlik Durumu</th>
+                    <th>Toplam Masraf (Yıl İçi)</th>
+                    <th>Toplam Trafik Cezası</th>
+                    <th>İncele</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for satir in rapor_verisi %}
+                <tr>
+                    <td>
+                        <div class="table-text-bold" style="color: #1f2937;">{{ satir.arac.plaka }}</div>
+                        <div class="table-text-muted" style="font-size: 0.85rem;">{{ satir.arac.marka|default:"Marka Belirtilmedi" }} {{ satir.arac.model_tanim|default:"" }}</div>
+                    </td>
+                    <td>
+                        {% if satir.musait_mi %}
+                            <span class="badge badge-green" style="padding: 0.4rem 0.8rem;"><i class="fas fa-check mr-1"></i> Müsait (Boşta)</span>
+                        {% else %}
+                            <span class="badge badge-red" style="padding: 0.4rem 0.8rem;"><i class="fas fa-car-side mr-1"></i> Görevde (Dolu)</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="table-text-bold" style="color: #f59e0b; font-size: 1.1rem;">₺{{ satir.masraf_toplam|floatformat:2 }}</div>
+                    </td>
+                    <td>
+                        <div class="table-text-bold" style="color: #ef4444; font-size: 1.1rem;">₺{{ satir.ceza_toplam|floatformat:2 }}</div>
+                    </td>
+                    <td>
+                        <a href="{% url 'arac_detay' satir.arac.id %}" class="btn-gray" style="padding: 0.3rem 0.8rem; font-size: 0.85rem;">
+                            Detay <i class="fas fa-chevron-right ml-1" style="font-size: 0.7rem;"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="empty-state">Sistemde raporlanacak araç bulunamadı.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <script>
+        function exportTableToExcel(tableID, filename = ''){
+            // 1. Sayfadaki tabloyu bul
+            var table = document.getElementById(tableID);
+            
+            // 2. SheetJS kütüphanesini kullanarak tabloyu Excel Kitabına çevir
+            var wb = XLSX.utils.table_to_book(table, {sheet: "Araç Raporu"});
+            
+            // 3. Dosya ismini ayarla (Artık .xls değil, güncel .xlsx formatı)
+            filename = filename ? filename + '.xlsx' : 'Rapor.xlsx';
+            
+            // 4. Gerçek Excel dosyasını indir!
+            XLSX.writeFile(wb, filename);
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "transfer/base.html" %}
+
+{% block title %}Masraf Türünü Sil{% endblock %}
+
+{% block content %}
+<div class="form-container-compact" style="max-width: 500px; margin: 0 auto; text-align: center; padding: 2rem;">
+    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #ef4444; margin-bottom: 1rem;"></i>
+    <h1 class="form-title" style="margin-bottom: 1rem; border: none; padding: 0;">Tür Kaydını Sil!</h1>
+    
+    <p style="margin-bottom: 2rem; color: #4b5563; font-size: 1.1rem; line-height: 1.5;">
+        <strong>"{{ tur.tanimi }}"</strong> isimli masraf türünü kalıcı olarak silmek istediğinize emin misiniz? <br>
+        <span style="font-size: 0.9rem; color:#ef4444; display:block; margin-top:0.5rem;">Bu türü kullanan masraflar etkilenebilir.</span>
+    </p>
+
+    <form method="POST" style="display: flex; gap: 1rem; justify-content: center;">
+        {% csrf_token %}
+        <a href="{% url 'masraf_turu_listesi' %}" class="btn-gray" style="padding: 0.8rem 1.5rem;">İptal</a>
+        <button type="submit" class="btn-red" style="padding: 0.8rem 1.5rem;">Evet, Sil</button>
+    </form>
+</div>
+{% endblock %}

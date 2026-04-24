@@ -1,0 +1,140 @@
+{% extends "transfer/base.html" %}
+
+{% block title %}Transfer Listesi{% endblock %}
+
+{% block content %}
+<div class="card-container-large">
+    <div class="card-header">
+        <h1 class="card-title">
+            {% if is_talep_listesi %}
+                Müşteri Transfer Talepleri
+            {% else %}
+                Aktif Transfer Operasyonları
+            {% endif %}
+        </h1>
+        <a href="{% url 'transfer_ekle' %}" class="btn-blue">
+            <i class="fas fa-plus"></i> Yeni Transfer Ekle
+        </a>
+    </div>
+    <div class="filter-box">
+        <form method="GET" class="filter-form">
+            <div class="filter-input-wrapper">
+                <input type="text" name="q" value="{{ query }}" placeholder="Müşteri, Çıkış veya Varış Adresi Ara..." class="form-input">
+            </div>
+            <div class="filter-select-wrapper">
+                <select name="durum" class="form-input">
+                    <option value="">Tüm Durumlar</option>
+                    {% for kod, etiket in DURUMLAR %}
+                    <option value="{{ kod }}" {% if durum == kod %}selected{% endif %}>{{ etiket }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn-blue w-auto">
+                Ara
+            </button>
+            <a href="{% url 'transfer_listesi' %}" class="btn-gray">
+                Temizle
+            </a>
+        </form>
+    </div>
+
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>  
+                    <th>Müşteri</th>
+                    <th>Rota</th>
+                    <th>Zaman</th>
+                    <th>Ekip & Araç</th>
+                    <th>Durum / Tutar</th>
+                    <th>Yolcu</th>
+                    <th>İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transfer in transferler %}
+                <tr>
+                    <td>
+                        <div class="td-customer-name" style="font-weight: 600; color: #1f2937;">
+                            {% if transfer.muhatap %}{{ transfer.muhatap.unvan }}{% else %}{{ transfer.musteri_adi|default:"-" }}{% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <div style="font-size: 0.85rem; color: #4b5563; display: flex; align-items: center; gap: 8px;">
+                            <span title="Çıkış" style="font-weight: 500;">{{ transfer.alis_yeri }}</span>
+                            <div style="font-size:1.1rem; flex-shrink: 0; display:flex; align-items:center;">
+                                {% if transfer.transfer_turu == 'gidis' %}
+                                    <span style="color:#3b82f6;" title="Gidiş Rota"><i class="fas fa-arrow-right"></i></span>
+                                {% elif transfer.transfer_turu == 'donus' %}
+                                    <span style="color:#10b981;" title="Dönüş Rota"><i class="fas fa-arrow-left"></i></span>
+                                {% else %}
+                                    <span style="color:#8b5cf6;" title="Gidiş-Dönüş Rota"><i class="fas fa-exchange-alt"></i></span>
+                                {% endif %}
+                            </div>
+                            <span title="Varış" style="font-weight: 500;">{{ transfer.varis_yeri }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="td-date" style="font-size: 0.75rem; color: #374151; display: flex; flex-direction: column; gap: 4px;">
+                            <div>
+                                <span style="font-weight: 600; color: #6b7280; display:inline-block; width:35px;">Çıkış:</span> 
+                                {{ transfer.alis_saati|date:"d.m.Y | H:i" }}
+                            </div>
+                            {% if transfer.varis_saati %}
+                            <div>
+                                <span style="font-weight: 600; color: #6b7280; display:inline-block; width:35px;">Varış:</span> 
+                                <span style="color:#1d4ed8; font-weight:500;">{{ transfer.varis_saati|date:"d.m.Y | H:i" }}</span>
+                            </div>
+                            {% else %}
+                            <div>
+                                <span style="font-weight: 600; color: #6b7280; display:inline-block; width:35px;">Varış:</span> 
+                                <span style="color:#9ca3af; font-style:italic;">Belirtilmedi</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 12px; font-size: 0.85rem;">
+                            <span title="Şoför"><i class="fas fa-user-circle" style="color: #3b82f6;"></i> {{ transfer.personel|default:"-" }}</span>
+                            <span title="Araç" style="background: #f3f4f6; padding: 1px 5px; border-radius: 3px; font-weight: 700; color: #374151;">{{ transfer.arac_kodu.plaka|default:"-" }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span class="badge 
+                                {% if transfer.transfer_durumu == 'beklemede' %}badge-yellow
+                                {% elif transfer.transfer_durumu == 'tamamlandi' %}badge-green
+                                {% else %}badge-blue{% endif %}" style="padding: 2px 6px; font-size: 0.65rem; text-transform: uppercase;">
+                                {{ transfer.get_transfer_durumu_display }}
+                            </span>
+                            <span style="font-weight: 700; color: #111827;">₺{{ transfer.tutar }}</span>
+                        </div>
+                    </td>
+                    <td style="text-align: center;">
+                        {% if transfer.yolcu_geldi_mi %}
+                            <span style="font-size: 0.65rem; background: #d1fae5; color: #065f46; padding: 2px 6px; border-radius: 4px; font-weight: 600;">ALINDI</span>
+                        {% else %}
+                            <span style="font-size: 0.65rem; background: #fee2e2; color: #991b1b; padding: 2px 6px; border-radius: 4px; font-weight: 600;">BEKLIYOR</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{% url 'transfer_detay' transfer.id %}" class="action-btn-green" title="Önizleme"><i class="fas fa-eye"></i></a>
+                            <a href="{% url 'transfer_duzenle' transfer.id %}" class="action-btn-blue" title="Düzenle"><i class="fas fa-edit"></i></a>
+                            <a href="{% url 'transfer_sil' transfer.id %}" class="action-btn-red" title="Sil"><i class="fas fa-trash"></i></a>
+                        </div>
+                    </td>
+                </tr>
+{% empty %}
+                <tr>
+                    <td colspan="7" class="empty-state">
+                        <i class="fas fa-inbox empty-icon"></i>
+                        Transfer kaydı bulunmuyor.
+                    </td>
+                </tr>
+{% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends "transfer/base.html" %}
+
+{% block title %}Yeni Personel Ekle{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto; background: white; padding: 2.5rem; border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f3f4f6; padding-bottom: 1.5rem; margin-bottom: 2rem;">
+        <h1 style="font-size: 1.5rem; font-weight: bold; color: #1f2937;">Yeni Personel Tanımla</h1>
+        <a href="{% url 'personel_listesi' %}" class="btn-gray">
+            <i class="fas fa-arrow-left"></i> Listeye Dön
+        </a>
+    </div>
+
+    <form method="POST" class="grid-2">
+        {% csrf_token %}
+        
+        <div>
+            <label class="form-label-small">Ad</label>
+            {{ form.ad }}
+        </div>
+        <div>
+            <label class="form-label-small">Soyad</label>
+            {{ form.soyad }}
+        </div>
+        <div style="grid-column: span 2;">
+            <label class="form-label-small">Telefon</label>
+            {{ form.telefon }}
+        </div>
+        <div>
+            <label class="form-label-small">İşe Başlama Tarihi</label>
+            {{ form.is_baslama_tarihi }}
+        </div>
+        <div>
+            <label class="form-label-small">İşten Ayrılış Tarihi</label>
+            {{ form.is_ayrilis_tarihi }}
+        </div>
+        <div>
+            <label class="form-label-small">Çalışma Türü</label>
+            {{ form.calisma_turu }}
+        </div>
+        <div>
+            <label class="form-label-small">Görevi</label>
+            {{ form.gorevi }}
+        </div>
+        
+        <div style="grid-column: span 2; display: flex; align-items: center; background: #f9fafb; padding: 1rem; border-radius: 0.5rem; border: 1px solid #e5e7eb;">
+            {{ form.aktif_mi }}
+            <label style="margin-left: 0.5rem; margin-bottom: 0; cursor: pointer;">Personel Aktif mi?</label>
+        </div>
+
+        <div style="grid-column: span 2; border-top: 1px solid #f3f4f6; padding-top: 1.5rem; display: flex; justify-content: flex-end;">
+            <button type="submit" class="btn-blue" style="padding: 0.75rem 2rem;">
+                <i class="fas fa-save mr-2"></i> Personeli Kaydet
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

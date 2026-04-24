@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ personel }} - Görev Kağıdı</title>
+    <style>
+        /* Genel ve Baskı Stilleri */
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #525659; margin: 0; padding: 20px; color: #333; }
+        
+        /* A4 Yatay (Landscape) Görünümü */
+        .document-a4 { background-color: #fff; width: 297mm; min-height: 210mm; margin: 0 auto; padding: 15mm; box-shadow: 0 0 10px rgba(0,0,0,0.5); box-sizing: border-box; position: relative; }
+        
+        .doc-header { border-bottom: 2px solid #1e293b; padding-bottom: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .doc-title h1 { margin: 0; color: #1e293b; font-size: 24px; text-transform: uppercase; }
+        .doc-title p { margin: 5px 0 0 0; color: #64748b; font-size: 14px; }
+        .doc-meta { text-align: right; font-size: 12px; color: #475569; }
+        
+        /* Şoför Bilgi Kutusu */
+        .driver-info-box { background: #f8fafc; border: 1px solid #cbd5e1; padding: 10px 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; border-radius: 4px;}
+        .driver-info-box h2 { margin: 0; font-size: 18px; color: #0f172a; }
+        .driver-info-box p { margin: 0; font-size: 13px; color: #475569; }
+
+        /* TEK SATIR (FLAT) TABLO YAPISI - DAHA FAZLA SÜTUN */
+        .data-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 30px; border: 1px solid #94a3b8; }
+        .data-table th, .data-table td { border: 1px solid #cbd5e1; padding: 10px 6px; text-align: left; vertical-align: middle; }
+        
+        /* Başlık Satırı */
+        .data-table th { background-color: #1e293b; color: white; text-transform: uppercase; font-size: 10px; white-space: nowrap; text-align: center; }
+        
+        .data-table tr:nth-child(even) { background-color: #f8fafc; }
+        
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        
+        .doc-footer { margin-top: 40px; text-align: center; font-size: 10px; color: #94a3b8; border-top: 1px solid #cbd5e1; padding-top: 10px; }
+        
+        /* Yazdırma Butonları */
+        .print-btn { color: white; border: none; padding: 10px 20px; font-size: 14px; border-radius: 5px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-weight: bold; transition: opacity 0.2s;}
+        .print-btn:hover { opacity: 0.8; }
+        
+        @media print {
+            body { background-color: white; padding: 0; }
+            .document-a4 { box-shadow: none; padding: 0; width: 100%; height: auto; }
+            .no-print { display: none !important; }
+            /* Yazıcıyı otomatik yatay kağıda ayarlar */
+            @page { size: landscape; margin: 10mm; }
+        }
+    </style>
+</head>
+<body>
+
+    <div style="position: fixed; top: 20px; right: 20px; display: flex; gap: 10px; z-index: 1000;" class="no-print">
+        <button class="print-btn" onclick="window.print()" style="background: #475569;">
+            🖨️ Yazdır / PDF
+        </button>
+        
+        <button class="print-btn" onclick="exportTableToExcel('gorevTablosu', 'Gorev_Kagidi_{{ personel|slugify }}')" style="background: #16a34a;">
+            📊 Excel İndir
+        </button>
+    </div>
+
+    <div class="document-a4">
+        
+        <div class="doc-header">
+            <div class="doc-title">
+                <h1>GÜNLÜK GÖREV KAĞIDI</h1>
+                <p>Şoför Sefer ve Rota Çizelgesi</p>
+            </div>
+            <div class="doc-meta">
+                <div><strong>Yazdırma Tarihi:</strong> {% now "d.m.Y H:i" %}</div>
+                <div><strong>Belge No:</strong> GRV-{% now "U" %}</div>
+            </div>
+        </div>
+
+        <div class="driver-info-box">
+            <div style="display: flex; align-items: baseline; gap: 15px;">
+                <h2>{{ personel }}</h2>
+                <p><strong>Unvan:</strong> {{ personel.unvan|default:"Şoför" }}</p>
+                <p><strong>Telefon:</strong> {{ personel.telefon }}</p>
+            </div>
+            <div class="text-right">
+                <p><strong>Toplam Görev:</strong> <span style="font-size: 15px; font-weight: bold; color: #2563eb;">{{ seferler|length }} Adet</span></p>
+            </div>
+        </div>
+
+        <table class="data-table" id="gorevTablosu">
+            <thead>
+                <tr>
+                    <th width="3%">NO</th>
+                    <th width="6%">SAAT</th>
+                    <th width="13%">MÜŞTERİ</th>
+                    <th width="9%">TELEFON</th>
+                    <th width="15%">ÇIKIŞ NOKTASI</th>
+                    <th width="15%">VARIŞ NOKTASI</th>
+                    <th width="14%">YOLCULAR</th>
+                    <th width="7%">ARAÇ</th>
+                    <th width="9%" class="text-right">TUTAR</th>
+                    <th width="9%">TAHSİLAT</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transfer in seferler %}
+                <tr>
+                    <td class="text-center"><strong>{{ forloop.counter }}</strong></td>
+                    
+                    <td class="text-center"><strong style="color: #2563eb;">{{ transfer.alis_saati|date:"H:i" }}</strong></td>
+                    
+                    <td>{% if transfer.muhatap %}{{ transfer.muhatap.unvan }}{% else %}{{ transfer.musteri_adi|default:"-" }}{% endif %}</td>
+                    
+                    <td class="text-center">{% if transfer.muhatap and transfer.muhatap.telefon %}{{ transfer.muhatap.telefon }}{% else %}{{ transfer.musteri_telefon|default:"-" }}{% endif %}</td>
+                    
+                    <td>{{ transfer.alis_yeri }}</td>
+                    
+                    <td>{{ transfer.varis_yeri }}</td>
+                    
+                    <td>
+                        {% for yolcu in transfer.yolcular_listesi.all %}
+                            {{ yolcu.isim_soyisim }}{% if not forloop.last %}, {% endif %}
+                        {% empty %}
+                            -
+                        {% endfor %}
+                    </td>
+
+                    <td class="text-center">{{ transfer.arac_kodu.plaka|default:"-" }}</td>
+                    
+                    <td class="text-right" style="white-space: nowrap;">
+                        <strong style="color: #b91c1c;">{{ transfer.tutar }} ₺</strong><br>
+                        <span style="font-size: 9px; color: #64748b;">({{ transfer.get_odeme_turu_display }})</span>
+                    </td>
+
+                    <td class="text-center" style="white-space: nowrap;">
+                        {% if transfer.odendi_mi %}
+                            <span style="font-size: 11px; color: #166534; font-weight: bold;">ÖDENDİ</span>
+                        {% else %}
+                            <span style="font-size: 11px; color: #991b1b; font-weight: bold;">ÖDENMEDİ</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="10" class="text-center" style="padding: 40px; color: #64748b; font-style: italic;">
+                        Şu an bu personele atanmış aktif bir sefer bulunmuyor.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="doc-footer">
+            Bu belge sistem tarafından şoför bilgilendirmesi amacıyla oluşturulmuştur.<br>
+            © {% now "Y" %} Filo Yönetim Sistemi
+        </div>
+
+    </div>
+
+<script>
+    function exportTableToExcel(tableID, filename = ''){
+        var downloadLink;
+        var dataType = 'application/vnd.ms-excel';
+        var tableSelect = document.getElementById(tableID);
+        
+        // Türkçe karakter (UTF-8) sorunu yaşamamak için bu eklemeyi yapıyoruz
+        var tableHTML = '<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="UTF-8"></head><body>' + tableSelect.outerHTML + '</body></html>';
+        
+        // Dosya adı belirtilmemişse varsayılan ad
+        filename = filename?filename+'.xls':'excel_data.xls';
+        
+        // İndirme linkini oluştur
+        downloadLink = document.createElement("a");
+        
+        document.body.appendChild(downloadLink);
+        
+        if(navigator.msSaveOrOpenBlob){
+            var blob = new Blob(['\ufeff', tableHTML], {
+                type: dataType
+            });
+            navigator.msSaveOrOpenBlob( blob, filename);
+        }else{
+            // Linke veriyi ata
+            downloadLink.href = 'data:' + dataType + ', ' + encodeURIComponent(tableHTML);
+            
+            // Dosya adını ayarla
+            downloadLink.download = filename;
+            
+            // Tıklamayı simüle et
+            downloadLink.click();
+        }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trafik Cezaları Rapor Belgesi</title>
+    <style>
+        /* Sadece Belge ve Baskı (Print) Stilleri */
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #525659; margin: 0; padding: 20px; color: #333; }
+        .document-a4 { background-color: #fff; width: 210mm; min-height: 297mm; margin: 0 auto; padding: 20mm; box-shadow: 0 0 10px rgba(0,0,0,0.5); box-sizing: border-box; position: relative; }
+        .doc-header { border-bottom: 2px solid #1e293b; padding-bottom: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .doc-title h1 { margin: 0; color: #1e293b; font-size: 24px; text-transform: uppercase; }
+        .doc-title p { margin: 5px 0 0 0; color: #64748b; font-size: 14px; }
+        .doc-meta { text-align: right; font-size: 12px; color: #475569; }
+        
+        /* Özet Tablosu */
+        .summary-table { width: 100%; border-collapse: collapse; margin-bottom: 25px; background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px;}
+        .summary-table td { padding: 15px; text-align: center; }
+        .summary-label { font-size: 12px; color: #64748b; font-weight: bold; text-transform: uppercase; display: block; margin-bottom: 4px; }
+        .summary-value { font-size: 20px; color: #2563eb; font-weight: bold; }
+
+        /* Ana Veri Tablosu (SÜTUN SÜTUN YAPI) */
+        .data-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 25px;}
+        .data-table th, .data-table td { border: 1px solid #94a3b8; padding: 8px 10px; text-align: left; vertical-align: middle; }
+        .data-table th { background-color: #1e293b; color: white; font-weight: bold; text-transform: uppercase; font-size: 11px; }
+        .data-table tr:nth-child(even) { background-color: #f1f5f9; }
+
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        
+        .status-paid { color: #166534; font-weight: bold; }
+        .status-unpaid { color: #991b1b; font-weight: bold; }
+
+        .doc-footer { margin-top: 40px; text-align: center; font-size: 10px; color: #94a3b8; border-top: 1px solid #cbd5e1; padding-top: 10px; }
+        
+        /* Düzeltilmiş Yazdırma Butonları CSS'i */
+        .print-btn { color: white; border: none; padding: 10px 20px; font-size: 14px; border-radius: 5px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: opacity 0.2s; font-weight: bold; }
+        .print-btn:hover { opacity: 0.8; }
+        
+        @media print {
+            body { background-color: white; padding: 0; }
+            .document-a4 { box-shadow: none; padding: 0; width: 100%; height: auto; }
+            .no-print { display: none !important; }
+            @page { margin: 15mm; }
+        }
+    </style>
+</head>
+<body>
+
+    <div style="position: fixed; top: 20px; right: 20px; display: flex; gap: 10px; z-index: 1000;" class="no-print">
+        <button class="print-btn" onclick="window.print()" style="background: #475569;">
+            🖨️ Yazdır / PDF
+        </button>
+        
+        <button class="print-btn" onclick="exportTableToExcel('raporTablosu', 'Trafik_Cezalari_Raporu')" style="background: #16a34a;">
+            📊 Excel İndir
+        </button>
+    </div>
+
+    <div class="document-a4">
+        
+        <div class="doc-header">
+            <div class="doc-title">
+                <h1>Trafik Cezaları Raporu</h1>
+                <p>Tüm Araç ve Personel İhlal Kayıtları Belgesi</p>
+            </div>
+            <div class="doc-meta">
+                <div><strong>Rapor Tarihi:</strong> {% now "d.m.Y H:i" %}</div>
+                <div><strong>Rapor No:</strong> RPR-{% now "U" %}</div>
+            </div>
+        </div>
+
+        <table class="summary-table">
+            <tr>
+                <td>
+                    <span class="summary-label">Toplam Kayıtlı Ceza</span>
+                    <span class="summary-value">{{ cezalar|length }} Adet</span>
+                </td>
+            </tr>
+        </table>
+
+        <table class="data-table" id="raporTablosu">
+            <thead>
+                <tr>
+                    <th width="12%">TARİH</th>
+                    <th width="15%">PLAKA</th>
+                    <th width="20%">PERSONEL</th>
+                    <th width="30%">İHLAL / CEZA MADDESİ</th>
+                    <th width="10%" class="text-right">TUTAR (₺)</th>
+                    <th width="13%" class="text-center">DURUM</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ceza in cezalar %}
+                <tr>
+                    <td>{{ ceza.tarih|date:"d.m.Y" }}<br><span style="color:#64748b; font-size:10px;">{{ ceza.saat|time:"H:i"|default:"" }}</span></td>
+                    <td><strong>{{ ceza.arac.plaka }}</strong></td>
+                    <td>{{ ceza.personel.ad_soyad|default:"Bilinmiyor" }}</td>
+                    <td>{{ ceza.madde }}</td>
+                    <td class="text-right"><strong style="color:#b91c1c;">{{ ceza.tutar }}</strong></td>
+                    <td class="text-center">
+                        {% if ceza.odendi_mi %}
+                            <span class="status-paid">Ödendi</span>
+                        {% else %}
+                            <span class="status-unpaid">Ödenmedi</span>
+                            {% if ceza.son_odeme_tarihi %}
+                                <br><span style="font-size: 9px; color: #64748b;">Son: {{ ceza.son_odeme_tarihi|date:"d.m.Y" }}</span>
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center" style="padding: 20px; color: #64748b;">
+                        Sistemde listelenecek ceza kaydı bulunmamaktadır.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="doc-footer">
+            Bu belge sistem tarafından otomatik olarak oluşturulmuştur. Elektronik ortamda üretildiği için imza gerektirmez.<br>
+            © {% now "Y" %} Filo Yönetim Sistemi
+        </div>
+
+    </div>
+
+<script>
+    function exportTableToExcel(tableID, filename = ''){
+        var downloadLink;
+        var dataType = 'application/vnd.ms-excel';
+        var tableSelect = document.getElementById(tableID);
+        
+        // Türkçe karakter (UTF-8) sorunu yaşamamak için bu eklemeyi yapıyoruz
+        var tableHTML = '<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="UTF-8"></head><body>' + tableSelect.outerHTML + '</body></html>';
+        
+        // Dosya adı belirtilmemişse varsayılan ad
+        filename = filename?filename+'.xls':'excel_data.xls';
+        
+        // İndirme linkini oluştur
+        downloadLink = document.createElement("a");
+        
+        document.body.appendChild(downloadLink);
+        
+        if(navigator.msSaveOrOpenBlob){
+            var blob = new Blob(['\ufeff', tableHTML], {
+                type: dataType
+            });
+            navigator.msSaveOrOpenBlob( blob, filename);
+        }else{
+            // Linke veriyi ata
+            downloadLink.href = 'data:' + dataType + ', ' + encodeURIComponent(tableHTML);
+            
+            // Dosya adını ayarla
+            downloadLink.download = filename;
+            
+            // Tıklamayı simüle et
+            downloadLink.click();
+        }
+    }
+</script>
+</body>
+</html>

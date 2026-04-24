@@ -1,0 +1,42 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kayıt Ol</title>
+    <link rel="stylesheet" href="{% static 'transfer/css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="register-body">
+    <div class="auth-container">
+        <div class="auth-header">
+            <i class="fas fa-user-plus auth-icon-green"></i>
+            <h2 class="auth-title">Yeni Hesap Oluştur</h2>
+            <p class="auth-subtitle">Sisteme katılmak için bilgilerinizi girin</p>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+            
+            {% for field in form %}
+            <div class="form-group">
+                <label class="form-label">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                <p class="error-msg">{{ field.errors.0 }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+
+            <button type="submit" class="btn-success">
+                Kayıt Ol
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            Zaten hesabınız var mı? <a href="{% url 'giris_yap' %}" class="auth-link-green">Giriş Yap</a>
+        </div>
+    </div>
+</body>
+</html>

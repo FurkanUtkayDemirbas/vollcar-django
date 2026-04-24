@@ -1,0 +1,222 @@
+{% extends "transfer/base.html" %}
+
+{% block title %}Sefer Takibi{% endblock %}
+
+{% block content %}
+<div class="card-container-large">
+    <div class="card-header" style="margin-bottom: 2rem;">
+        <h1 class="card-title" style="color: #1e293b; font-size: 1.5rem; font-weight: 700;"><i class="fas fa-shipping-fast text-blue-600 mr-2"></i> Şoför Bazlı Sefer Takibi</h1>
+        <div style="font-size:0.9rem; color:#64748b; margin-top: 4px;">Aktif operasyonların anlık durumlarını buradan yönetebilirsiniz.</div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 1.5rem;">
+        {% for personel in personeller %}
+        <div class="driver-card" style="background: white; border: 1px solid #cbd5e1; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);">
+            
+            <div style="background: #ffffff; padding: 1.2rem; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center;">
+                    <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-weight: bold; font-size: 1.2rem; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);">
+                        {{ personel|slice:":1" }}
+                    </div>
+                    <div>
+                        <div style="font-weight: 800; color: #0f172a; font-size: 1.1rem;">{{ personel }}</div>
+                        <div style="font-size: 0.8rem; color: #64748b; font-weight: 600;">{{ personel.unvan|default:"Şoför" }}</div>
+                    </div>
+                </div>
+                <div style="text-align: right; background: #f8fafc; padding: 6px 12px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <div style="font-size: 0.65rem; color: #94a3b8; font-weight: 800; letter-spacing: 0.5px;">İLETİŞİM</div>
+                    <div style="font-size: 0.9rem; color: #334155; font-weight: 700;">
+                        <a href="tel:{{ personel.telefon }}" style="color: inherit; text-decoration: none;">{{ personel.telefon }}</a>
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; padding: 0 1.2rem 1.2rem 1.2rem;">
+                <a href="{% url 'sefer_raporu_belge' personel.id %}" target="_blank" class="btn-gray" style="background: #475569; color: white; padding: 8px 16px; font-size: 0.85rem;">
+                    <i class="fas fa-print"></i> Rapor Yazdır / PDF
+                </a>
+            </div>
+
+            <div class="custom-scrollbar" style="padding: 1.5rem; max-height: 550px; overflow-y: auto; background: #f1f5f9;">
+                {% with seferler=personel.transfer_set.all %}
+                {% if seferler %}
+                    {% for transfer in seferler %}
+                        <div class="trip-card {% if transfer.transfer_durumu == 'tamamlandi' %}completed{% endif %}" 
+                             style="background: white; border-radius: 12px; margin-bottom: 1.5rem; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.06); border: 1px solid #e2e8f0;
+                                    border-left: 5px solid {% if transfer.transfer_durumu == 'basladi' %}#3b82f6{% elif transfer.transfer_durumu == 'tamamlandi' %}#10b981{% elif transfer.transfer_durumu == 'beklemede' %}#f59e0b{% else %}#ef4444{% endif %};">
+                            
+                            <div style="background: #f8fafc; padding: 10px 16px; border-bottom: 1px solid #e2e8f0; border-top-right-radius: 10px; display: flex; justify-content: space-between; align-items: center;">
+                                <div style="font-size: 0.85rem; display: flex; align-items: center; gap: 8px;">
+                                    <span style="background: #e2e8f0; color: #334155; font-weight: 800; padding: 2px 8px; border-radius: 6px;">{{ forloop.counter }}. Sefer</span>
+                                    
+                                    {% if transfer.transfer_turu == 'gidis' %}
+                                        <span style="color:#3b82f6; font-weight:700;"><i class="fas fa-arrow-right"></i> Gidiş</span>
+                                    {% elif transfer.transfer_turu == 'donus' %}
+                                        <span style="color:#10b981; font-weight:700;"><i class="fas fa-arrow-left"></i> Dönüş</span>
+                                    {% else %}
+                                        <span style="color:#8b5cf6; font-weight:700;"><i class="fas fa-exchange-alt"></i> Gidiş-Dönüş</span>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <span class="badge 
+                                        {% if transfer.transfer_durumu == 'beklemede' %}badge-yellow
+                                        {% elif transfer.transfer_durumu == 'basladi' %}badge-blue
+                                        {% elif transfer.transfer_durumu == 'tamamlandi' %}badge-green
+                                        {% else %}badge-red{% endif %}" style="font-size: 0.7rem; padding: 4px 10px;">
+                                        {{ transfer.get_transfer_durumu_display }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div style="padding: 16px;">
+                                
+                                <div style="margin-bottom: 16px;">
+                                    <div style="font-weight: 800; font-size: 1.05rem; color: #0f172a;">
+                                        {% if transfer.muhatap %}{{ transfer.muhatap.unvan }}{% else %}{{ transfer.musteri_adi|default:"Belirtilmemiş" }}{% endif %}
+                                    </div>
+                                    <div style="margin-top: 6px;">
+                                        {% if transfer.muhatap and transfer.muhatap.telefon %}
+                                            <a href="tel:{{ transfer.muhatap.telefon }}" class="contact-link"><i class="fas fa-phone-alt"></i> {{ transfer.muhatap.telefon }}</a>
+                                        {% elif transfer.musteri_telefon %}
+                                            <a href="tel:{{ transfer.musteri_telefon }}" class="contact-link"><i class="fas fa-phone-alt"></i> {{ transfer.musteri_telefon }}</a>
+                                        {% else %}
+                                            <span style="color: #94a3b8; font-size: 0.8rem; font-style: italic;">Telefon yok</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="route-timeline">
+                                    <div class="route-item">
+                                        <div class="route-icon bg-blue"><i class="fas fa-circle"></i></div>
+                                        <div class="route-content">
+                                            <div class="route-label">Çıkış <span class="route-type">({{ transfer.get_alis_yer_turu_display|default:"-" }})</span></div>
+                                            <div class="route-address">{{ transfer.alis_yeri }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="route-item">
+                                        <div class="route-icon bg-green"><i class="fas fa-map-marker-alt"></i></div>
+                                        <div class="route-content">
+                                            <div class="route-label">Varış <span class="route-type">({{ transfer.get_varis_yer_turu_display|default:"-" }})</span></div>
+                                            <div class="route-address">{{ transfer.varis_yeri }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin-bottom: 16px;">
+                                    <div style="font-size: 0.75rem; color: #475569; font-weight: 800; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px;">
+                                        YOLCULAR ({{ transfer.kisi_sayisi }})
+                                    </div>
+                                    <div class="passenger-list">
+                                        {% for yolcu in transfer.yolcular_listesi.all %}
+                                            <div class="passenger-item">
+                                                <span style="color: #334155; font-size: 0.85rem; font-weight: 600;">{{ yolcu.isim_soyisim }}</span>
+                                                {% if yolcu.telefon %}
+                                                    <a href="tel:{{ yolcu.telefon }}" class="passenger-phone"><i class="fas fa-phone"></i> {{ yolcu.telefon }}</a>
+                                                {% endif %}
+                                            </div>
+                                        {% empty %}
+                                            <div style="color: #94a3b8; font-size: 0.8rem; font-style: italic;">Yolcu bilgisi girilmedi.</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+
+                                <div class="payment-box {% if transfer.odendi_mi %}paid{% else %}unpaid{% endif %}">
+                                    <div style="display: flex; align-items: center;">
+                                        <i class="fas fa-wallet mr-2"></i> 
+                                        <span style="font-size: 0.8rem; font-weight: 600; margin-right: 8px;">Tutar:</span>
+                                        <strong style="font-size: 1rem;">{{ transfer.tutar }} ₺</strong> 
+                                        <span style="font-size: 0.75rem; margin-left: 4px; opacity: 0.8;">({{ transfer.get_odeme_turu_display }})</span>
+                                    </div>
+                                    <div>
+                                        {% if transfer.odendi_mi %}
+                                            <span class="payment-status"><i class="fas fa-check-circle"></i> Ödendi</span>
+                                        {% else %}
+                                            <span class="payment-status"><i class="fas fa-exclamation-circle"></i> Ödenmedi</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 16px; padding-top: 12px; border-top: 1px solid #e2e8f0;">
+                                    <div style="font-size: 0.8rem; color: #475569; font-weight: 500; line-height: 1.5;">
+                                        <div><i class="far fa-calendar-alt mr-1"></i> {{ transfer.alis_saati|date:"d.m.Y H:i" }}</div>
+                                        {% if transfer.arac_kodu %}
+                                            <div style="margin-top: 4px;"><i class="fas fa-car mr-1 text-slate-400"></i> <strong style="color:#0f172a;">{{ transfer.arac_kodu.plaka }}</strong></div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="action-buttons" style="display: flex; gap: 8px;">
+                                        {% if transfer.transfer_durumu == 'beklemede' %}
+                                            <a href="{% url 'transfer_durum_guncelle' transfer.id 'basladi' %}" class="btn-action bg-blue-action">Başlat</a>
+                                        {% elif transfer.transfer_durumu == 'basladi' %}
+                                            <a href="{% url 'transfer_durum_guncelle' transfer.id 'tamamlandi' %}" class="btn-action bg-green-action">Tamamla</a>
+                                        {% endif %}
+                                        <a href="{% url 'transfer_duzenle' transfer.id %}" class="btn-action bg-gray-action" title="Detaylar"><i class="fas fa-search"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div style="text-align: center; color: #94a3b8; padding: 3rem 1rem; background: white; border-radius: 12px; border: 1px dashed #cbd5e1;">
+                        <i class="fas fa-clipboard-check" style="display: block; font-size: 2.5rem; margin-bottom: 12px; color: #e2e8f0;"></i>
+                        <span style="font-size: 0.95rem; font-weight: 600; color: #64748b;">Şu an atanmış aktif sefer bulunmuyor.</span>
+                    </div>
+                {% endif %}
+                {% endwith %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    /* Genel Kart Stilleri */
+    .trip-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .trip-card:last-child { margin-bottom: 0 !important; }
+    .trip-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08) !important; }
+    .trip-card.completed { opacity: 0.75; filter: grayscale(15%); }
+    .trip-card.completed:hover { filter: grayscale(0%); opacity: 1; }
+
+    /* İletişim Linkleri */
+    .contact-link { display: inline-flex; align-items: center; color: #3b82f6; font-size: 0.85rem; font-weight: 700; text-decoration: none; background: #eff6ff; padding: 6px 12px; border-radius: 20px; transition: background 0.2s; border: 1px solid #bfdbfe; }
+    .contact-link:hover { background: #dbeafe; }
+
+    /* Rota Timeline Tasarımı */
+    .route-timeline { position: relative; padding-left: 24px; margin-bottom: 20px; }
+    .route-timeline::before { content: ''; position: absolute; left: 7px; top: 12px; bottom: 12px; width: 2px; background: #cbd5e1; border-radius: 2px; }
+    .route-item { position: relative; margin-bottom: 16px; }
+    .route-item:last-child { margin-bottom: 0; }
+    .route-icon { position: absolute; left: -24px; top: 2px; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.5rem; color: white; border: 2px solid white; box-shadow: 0 0 0 2px #cbd5e1; z-index: 2; }
+    .route-icon.bg-blue { background: #3b82f6; border-color: #3b82f6; }
+    .route-icon.bg-green { background: #10b981; border-color: #10b981; }
+    .route-label { font-size: 0.75rem; font-weight: 800; color: #475569; text-transform: uppercase; margin-bottom: 4px; }
+    .route-type { font-weight: 600; color: #94a3b8; text-transform: none; font-size: 0.7rem; }
+    .route-address { font-size: 0.9rem; color: #1e293b; font-weight: 600; line-height: 1.4; word-break: break-word; }
+
+    /* Yolcu Listesi */
+    .passenger-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed #cbd5e1; }
+    .passenger-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .passenger-phone { color: #64748b; font-size: 0.8rem; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px; background: white; padding: 2px 8px; border-radius: 12px; border: 1px solid #e2e8f0;}
+    .passenger-phone:hover { color: #3b82f6; border-color: #bfdbfe; }
+
+    /* Ödeme Kutusu */
+    .payment-box { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-radius: 8px; border: 1px solid transparent; }
+    .payment-box.paid { background: #f0fdf4; border-color: #bbf7d0; color: #166534; }
+    .payment-box.unpaid { background: #fef2f2; border-color: #fecaca; color: #991b1b; }
+    .payment-status { font-size: 0.85rem; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+
+    /* Butonlar */
+    .btn-action { text-decoration: none; padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; color: white; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; }
+    .bg-blue-action { background: #3b82f6; box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3); }
+    .bg-blue-action:hover { background: #2563eb; transform: translateY(-2px); }
+    .bg-green-action { background: #10b981; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3); }
+    .bg-green-action:hover { background: #059669; transform: translateY(-2px); }
+    .bg-gray-action { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .bg-gray-action:hover { background: #e2e8f0; color: #1e293b; transform: translateY(-2px); }
+
+    /* Custom Scrollbar */
+    .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #e2e8f0; border-radius: 10px; border-left: 2px solid #f1f5f9;}
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 10px; border: 2px solid #e2e8f0; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #64748b; }
+</style>
+{% endblock %}

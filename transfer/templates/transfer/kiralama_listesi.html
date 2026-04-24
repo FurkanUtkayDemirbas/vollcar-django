@@ -1,0 +1,78 @@
+{% extends "transfer/base.html" %}
+
+{% block title %}Araç Kiralama Kayıtları{% endblock %}
+
+{% block content %}
+<div class="card-container-large">
+    <div class="card-header">
+        <h1 class="card-title">Araç Kiralama Takibi</h1>
+        <a href="{% url 'kiralama_ekle' %}" class="btn-blue">
+            <i class="fas fa-plus"></i> Yeni Kiralama Kaydı
+        </a>
+    </div>
+
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>  
+                    <th>Araç & Plaka</th>
+                    <th>Müşteri / Teslim Edilen</th>
+                    <th>Kiralama Dönemi</th>
+                    <th>Süre & Tutar</th>
+                    <th>Sözleşme</th>
+                    <th>İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for kiralama in kiralamalar %}
+                <tr>
+                    <td>
+                        <div class="table-text-bold">{{ kiralama.arac.plaka }}</div>
+                        <div class="table-text-muted" style="font-size: 0.8rem;">{{ kiralama.arac.marka }}</div>
+                    </td>
+                    <td>
+                        <div class="table-text-bold" style="color: #374151;">
+                            {% if kiralama.muhatap %}{{ kiralama.muhatap.unvan }}{% else %}{{ kiralama.teslim_edilen_kisiler|default:"-" }}{% endif %}
+                        </div>
+                        {% if kiralama.muhatap and kiralama.muhatap.telefon %}
+                        <div style="font-size:0.8rem; color:#6b7280;"><i class="fas fa-phone-alt"></i> {{ kiralama.muhatap.telefon }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="font-size: 0.85rem;">
+                            <span style="color: #10b981;">{{ kiralama.baslangic_tarihi|date:"d.m.Y" }}</span> 
+                            <i class="fas fa-long-arrow-alt-right mx-1"></i> 
+                            <span style="color: #ef4444;">{{ kiralama.bitis_tarihi|date:"d.m.Y" }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="table-text-bold">{{ kiralama.sure }} {{ kiralama.get_sure_birimi_display }}</div>
+                        <div style="color: #3b82f6; font-weight: bold;">₺{{ kiralama.toplam_tutar }}</div>
+                    </td>
+                    <td>
+                        {% if kiralama.sozlesme_imzalandi %}
+                            <span class="badge badge-green"><i class="fas fa-signature mr-1"></i> İmzalandı</span>
+                        {% else %}
+                            <span class="badge badge-red"><i class="fas fa-pen-fancy mr-1"></i> Bekliyor</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{% url 'kiralama_duzenle' kiralama.id %}" class="action-btn-blue"><i class="fas fa-edit"></i></a>
+                            <a href="{% url 'kiralama_sil' kiralama.id %}" class="action-btn-red"><i class="fas fa-trash"></i></a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="empty-state">
+                        <i class="fas fa-key empty-icon"></i>
+                        Henüz bir kiralama kaydı bulunmuyor.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

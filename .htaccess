@@ -1,0 +1,6 @@
+# Apache UTF-8 Ayarları (Cpanel vb. yayına alma durumlarında Türkçe karakter sorunu için)
+AddDefaultCharset UTF-8
+
+<IfModule mod_mime.c>
+    AddCharset UTF-8 .html .css .js .py .json
+</IfModule>

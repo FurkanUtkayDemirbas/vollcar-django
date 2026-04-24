@@ -1,0 +1,33 @@
+{% extends "transfer/base.html" %}
+
+{% block title %}Personel Düzenle{% endblock %}
+
+{% block content %}
+<div class="form-container-small">
+    <div class="form-header-small">
+        <h1 class="form-title-small">Personeli Düzenle: {{ personel.ad_soyad }}</h1>
+        <a href="{% url 'personel_listesi' %}" class="link-back-small">
+            <i class="fas fa-arrow-left"></i> Listeye Dön
+        </a>
+    </div>
+
+    <form method="POST" class="grid-2">
+        {% csrf_token %}
+        
+        {% for field in form %}
+        <div>
+            <label class="form-label-small">
+                {{ field.label }}
+            </label>
+            {{ field }}
+        </div>
+        {% endfor %}
+        
+        <div class="form-footer-small">
+            <button type="submit" class="btn-blue">
+                Değişiklikleri Kaydet
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

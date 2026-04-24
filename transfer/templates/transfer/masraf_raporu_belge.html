@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masraf ve Gider Rapor Belgesi</title>
+    <style>
+        /* Sadece Belge ve Baskı (Print) Stilleri */
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #525659; margin: 0; padding: 20px; color: #333; }
+        .document-a4 { background-color: #fff; width: 210mm; min-height: 297mm; margin: 0 auto; padding: 20mm; box-shadow: 0 0 10px rgba(0,0,0,0.5); box-sizing: border-box; position: relative; }
+        .doc-header { border-bottom: 2px solid #1e293b; padding-bottom: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .doc-title h1 { margin: 0; color: #1e293b; font-size: 24px; text-transform: uppercase; }
+        .doc-title p { margin: 5px 0 0 0; color: #64748b; font-size: 14px; }
+        .doc-meta { text-align: right; font-size: 12px; color: #475569; }
+        .summary-table { width: 100%; border-collapse: collapse; margin-bottom: 25px; background-color: #f8fafc; border: 1px solid #cbd5e1; }
+        .summary-table td { padding: 10px 15px; border-right: 1px solid #cbd5e1; text-align: left; }
+        .summary-table td:last-child { border-right: none; }
+        .summary-label { font-size: 11px; color: #64748b; font-weight: bold; text-transform: uppercase; display: block; margin-bottom: 4px; }
+        .summary-value { font-size: 18px; color: #0f172a; font-weight: bold; }
+        
+        /* TEK SATIR (FLAT) TABLO YAPISI - HER BİLGİ AYRI SÜTUNDA */
+        .data-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 30px; border: 1px solid #94a3b8; }
+        .data-table th, .data-table td { border: 1px solid #cbd5e1; padding: 10px 8px; text-align: left; vertical-align: middle; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .data-table th { background-color: #1e293b; color: white; font-weight: bold; text-transform: uppercase; font-size: 10px; text-align: center; }
+        .data-table tr:nth-child(even) { background-color: #f8fafc; }
+        
+        .text-right { text-align: right !important; }
+        .text-center { text-align: center !important; }
+        .doc-footer { margin-top: 40px; text-align: center; font-size: 10px; color: #94a3b8; border-top: 1px solid #cbd5e1; padding-top: 10px; }
+        
+        /* DÜZELTİLEN BUTON CSS'İ (position:fixed buradan kaldırıldı, kapsayıcıya verildi) */
+        .print-btn { color: white; border: none; padding: 10px 20px; font-size: 14px; border-radius: 5px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-weight: bold; transition: opacity 0.2s;}
+        .print-btn:hover { opacity: 0.8; }
+        
+        @media print {
+            body { background-color: white; padding: 0; }
+            .document-a4 { box-shadow: none; padding: 0; width: 100%; height: auto; }
+            .no-print { display: none !important; }
+            @page { size: landscape; margin: 10mm; }
+        }
+    </style>
+</head>
+<body>
+
+    <div style="position: fixed; top: 20px; right: 20px; display: flex; gap: 10px; z-index: 1000;" class="no-print">
+        <button class="print-btn" onclick="window.print()" style="background: #475569;">
+            🖨️ Yazdır / PDF
+        </button>
+        
+        <button class="print-btn" onclick="exportTableToExcel('raporTablosu', 'Masraf_Gider_Raporu')" style="background: #16a34a;">
+            📊 Excel İndir
+        </button>
+    </div>
+
+    <div class="document-a4">
+        
+        <div class="doc-header">
+            <div class="doc-title">
+                <h1>Masraf ve Gider Raporu</h1>
+                <p>Şirket, Araç ve Personel Gider Kayıtları</p>
+            </div>
+            <div class="doc-meta">
+                <div><strong>Rapor Tarihi:</strong> {% now "d.m.Y H:i" %}</div>
+                <div><strong>Rapor No:</strong> MSF-{% now "U" %}</div>
+            </div>
+        </div>
+
+        <table class="summary-table">
+            <tr>
+                <td>
+                    <span style="font-size: 11px; color: #64748b; text-transform: uppercase; font-weight: bold; margin-right: 10px;">Toplam Kayıtlı Masraf:</span>
+                    <span class="summary-value" style="color: #2563eb;">{{ masraflar|length }} Adet</span>
+                </td>
+            </tr>
+        </table>
+
+        <table class="data-table" id="raporTablosu">
+            <thead>
+                <tr>
+                    <th width="3%">NO</th>
+                    <th width="10%">TARİH</th>
+                    <th width="10%">FİŞ / BELGE NO</th>
+                    <th width="17%">MASRAF TÜRÜ</th>
+                    <th width="20%">FİRMA</th>
+                    <th width="10%">ARAÇ</th>
+                    <th width="20%">PERSONEL</th>
+                    <th width="10%" class="text-right">TUTAR</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for masraf in masraflar %}
+                <tr>
+                    <td class="text-center"><strong>{{ forloop.counter }}</strong></td>
+                    <td class="text-center">{{ masraf.tarih|date:"d.m.Y" }}</td>
+                    <td class="text-center">{{ masraf.fis_no|default:"-" }}</td>
+                    <td>{{ masraf.masraf_turu.tanimi|default:"-" }}</td>
+                    <td>{{ masraf.firma.ad|default:"-" }}</td>
+                    <td class="text-center"><strong>{{ masraf.arac.plaka|default:"-" }}</strong></td>
+                    <td>{{ masraf.personel.ad_soyad|default:"-" }}</td>
+                    <td class="text-right"><strong style="color: #b91c1c;">{{ masraf.tutar }} {{ masraf.para_birimi }}</strong></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center" style="padding: 40px; color: #64748b; font-style: italic;">
+                        Sistemde listelenecek masraf kaydı bulunmamaktadır.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="doc-footer">
+            Bu belge sistem tarafından otomatik olarak oluşturulmuştur.<br>
+            © {% now "Y" %} Filo Yönetim Sistemi
+        </div>
+
+    </div>
+
+<script>
+    function exportTableToExcel(tableID, filename = ''){
+        var downloadLink;
+        var dataType = 'application/vnd.ms-excel';
+        var tableSelect = document.getElementById(tableID);
+        
+        // Türkçe karakter (UTF-8) sorunu yaşamamak için bu eklemeyi yapıyoruz
+        var tableHTML = '<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="UTF-8"></head><body>' + tableSelect.outerHTML + '</body></html>';
+        
+        // Dosya adı belirtilmemişse varsayılan ad
+        filename = filename?filename+'.xls':'excel_data.xls';
+        
+        // İndirme linkini oluştur
+        downloadLink = document.createElement("a");
+        
+        document.body.appendChild(downloadLink);
+        
+        if(navigator.msSaveOrOpenBlob){
+            var blob = new Blob(['\ufeff', tableHTML], {
+                type: dataType
+            });
+            navigator.msSaveOrOpenBlob( blob, filename);
+        }else{
+            // Linke veriyi ata
+            downloadLink.href = 'data:' + dataType + ', ' + encodeURIComponent(tableHTML);
+            
+            // Dosya adını ayarla
+            downloadLink.download = filename;
+            
+            // Tıklamayı simüle et
+            downloadLink.click();
+        }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+{% extends "transfer/base.html" %}
+
+{% block title %}Kiralama Kaydını Sil{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 2rem auto; background: white; padding: 2.5rem; border-radius: 1rem; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-top: 4px solid #ef4444;">
+    <div style="width: 4rem; height: 4rem; background: #fee2e2; color: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 1.5rem auto;">
+        <i class="fas fa-trash-alt"></i>
+    </div>
+    
+    <h2 style="font-size: 1.5rem; font-weight: bold; color: #1f2937; margin-bottom: 0.5rem;">Kaydı Silmek Üzeresiniz!</h2>
+    
+    <p style="color: #4b5563; margin-bottom: 2rem; line-height: 1.5;">
+        <strong>{{ kiralama.arac.plaka }}</strong> plakalı aracın, <strong>{% if kiralama.muhatap %}{{ kiralama.muhatap.unvan }}{% else %}{{ kiralama.teslim_edilen_kisiler|default:"Bilinmiyor" }}{% endif %}</strong> müşterisi ile yapılan <strong>{{ kiralama.baslangic_tarihi|date:"d.m.Y" }}</strong> tarihli kiralama kaydını kalıcı olarak silmek istediğinize emin misiniz?
+    </p>
+
+    <form method="POST" style="display: flex; justify-content: center; gap: 1rem;">
+        {% csrf_token %}
+        <a href="{% url 'kiralama_listesi' %}" class="btn-gray" style="padding: 0.5rem 1.5rem; border-radius: 0.5rem; text-decoration: none; display: flex; align-items: center;">
+            Vazgeç
+        </a>
+        <button type="submit" class="action-btn-red" style="padding: 0.5rem 1.5rem; border-radius: 0.5rem; border: none; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; font-weight: 600;">
+            <i class="fas fa-trash"></i> Evet, Kalıcı Olarak Sil
+        </button>
+    </form>
+</div>
+{% endblock %}

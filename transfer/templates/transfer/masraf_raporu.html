@@ -1,0 +1,144 @@
+{% extends "transfer/base.html" %}
+
+{% block title %}Araç ve Filo Masraf Raporu{% endblock %}
+
+{% block content %}
+<style>
+    .btn-excel {
+        background-color: #10b981;
+        color: white;
+        border: 1px solid #10b981;
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        transition: all 0.2s ease-in-out;
+    }
+    
+    .btn-excel:hover {
+        background-color: #059669;
+        border-color: #059669;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3);
+    }
+</style>
+
+<div class="card-container-large">
+    <div class="card-header" style="border-bottom: 2px solid #f3f4f6; padding-bottom: 1.5rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h1 class="card-title"><i class="fas fa-wallet mr-2" style="color: #ef4444;"></i> Filo Masraf Raporu</h1>
+            <p style="color: #6b7280; font-size: 0.875rem; margin-top: 0.25rem;">Araç bazlı (plaka) ve türlere göre detaylı gider (harcama) analizi.</p>
+        </div>
+        <div style="display: flex; gap: 1rem;">
+            <button onclick="exportTableToExcel('masrafRaporTablosu', 'Filo_Masraf_Raporu')" class="btn-excel">
+                <i class="fas fa-file-excel mr-1"></i> Excel İndir
+            </button>
+            <a href="{% url 'raporlar_ana' %}" class="btn-gray"><i class="fas fa-arrow-left"></i> Raporlara Dön</a>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1.5rem; display: flex; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+            <div style="background: #fef2f2; color: #ef4444; width: 3.5rem; height: 3.5rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-right: 1rem;">
+                <i class="fas fa-money-bill-wave"></i>
+            </div>
+            <div>
+                <div style="color: #6b7280; font-size: 0.875rem; font-weight: 600;">Şirket Toplam Masrafı</div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #1f2937;">₺{{ toplam_tutar|floatformat:2 }}</div>
+            </div>
+        </div>
+        
+        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1.5rem; display: flex; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+            <div style="background: #eff6ff; color: #3b82f6; width: 3.5rem; height: 3.5rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-right: 1rem;">
+                <i class="fas fa-receipt"></i>
+            </div>
+            <div>
+                <div style="color: #6b7280; font-size: 0.875rem; font-weight: 600;">Toplam İşlem Adedi</div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #3b82f6;">{{ islem_sayisi }} Kayıt</div>
+            </div>
+        </div>
+
+        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1.5rem; display: flex; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
+            <div style="background: #fffbeb; color: #f59e0b; width: 3.5rem; height: 3.5rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin-right: 1rem;">
+                <i class="fas fa-chart-pie"></i>
+            </div>
+            <div>
+                <div style="color: #6b7280; font-size: 0.875rem; font-weight: 600;">En Yüksek Gider Kalemi</div>
+                <div style="font-size: 1.1rem; font-weight: bold; color: #1f2937;">{{ en_masrafli_tur_adi }}</div>
+                <div style="font-size: 0.85rem; color: #f59e0b; font-weight: 600;">₺{{ en_masrafli_tur_tutari|floatformat:2 }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table class="data-table" id="masrafRaporTablosu">
+            <thead>
+                <tr>  
+                    <th>Tarih</th>
+                    <th>Araç Plakası</th>
+                    <th>Masraf Türü</th>
+                    <th>İlgili Personel</th>
+                    <th>Açıklama</th>
+                    <th>Fiş No</th>
+                    <th>Tutar</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for masraf in masraflar %}
+                <tr>
+                    <td>
+                        <div class="table-text-bold" style="color: #1f2937;">{{ masraf.tarih|date:"d.m.Y" }}</div>
+                    </td>
+                    <td>
+                        <div class="table-text-bold" style="color: #1f2937;">
+                            {{ masraf.arac.plaka|default:"Araç Bağımsız" }}
+                        </div>
+                    </td>
+                    <td>
+                        <div style="background: #f3f4f6; padding: 0.3rem 0.6rem; border-radius: 0.3rem; display: inline-block; font-size: 0.85rem; font-weight: 600; color: #4b5563;">
+                            {{ masraf.masraf_turu.tanimi|default:"Tür Belirtilmedi" }}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="table-text-bold" style="color: #3b82f6;">
+                            {{ masraf.personel|default:"-" }}
+                        </div>
+                    </td>
+                    <td>
+                        <div style="font-size: 0.85rem; color: #374151;">
+                            {{ masraf.aciklama|default:"-" }}
+                        </div>
+                    </td>
+                    <td>
+                        <div style="font-size: 0.85rem; color: #6b7280; font-weight: 500;">
+                            {{ masraf.fis_no|default:"-" }}
+                        </div>
+                    </td>
+                    <td>
+                        <div class="table-text-bold" style="color: #ef4444; font-size: 1.1rem;">
+                            ₺{{ masraf.tutar|floatformat:2 }}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="empty-state">Sistemde raporlanacak masraf kaydı bulunamadı.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+    function exportTableToExcel(tableID, filename = ''){
+        var table = document.getElementById(tableID);
+        var wb = XLSX.utils.table_to_book(table, {sheet: "Masraf Raporu"});
+        filename = filename ? filename + '.xlsx' : 'Masraf_Raporu.xlsx';
+        XLSX.writeFile(wb, filename);
+    }
+</script>
+{% endblock %}
